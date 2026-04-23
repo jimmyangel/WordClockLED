@@ -5,9 +5,10 @@
 #include "TimeWords.h"
 #include "constants.h"
 
-// Declare the display pointer so this file can see it
 extern MatrixPanel_I2S_DMA *dma_display;
 
-void displayTime(int hours, int minutes, int lang);
+// Added color parameter
+void displayTime(int hours, int minutes, int lang, uint16_t color);
 
 #endif
+
