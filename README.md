@@ -1,4 +1,4 @@
-## A bilingual word clock using a LED Matrix
+## A bilingual word clock using an LED Matrix
 
 ### Parts list:
 
