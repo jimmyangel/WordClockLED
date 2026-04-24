@@ -2,6 +2,7 @@
 #include <Preferences.h>      // Added for credentials
 #include "src/ClockTask.h"
 #include "src/TimeSync.h"      // Added for the sync function
+#include "src/constants.h"
 
 // Global display pointer
 MatrixPanel_I2S_DMA *dma_display = nullptr;
@@ -29,18 +30,17 @@ void setup() {
   preferences.begin("wordclockwifi", true); 
   String ssid = preferences.getString("ssid", "");
   String password = preferences.getString("password", "");
+  int finalLang = preferences.getInt("lang", 0); // 0 = SPANISH default
   preferences.end(); // Close preferences
 
-  if (ssid != "") {
-    Serial.println("Credentials found, syncing time...");
-    timeSync(ssid, password);
-  } else {
-    Serial.println("No WiFi credentials found in Preferences!");
-  }
+  // Run the sync/portal logic
+  timeSync(ssid, password);
+
+  clockTask.lang = finalLang;
 
   // 3. Start your Clock Task
   clockTask.start(1);
-  Serial.println("Clock Task Started!");
+  Serial.printf("System started with Language ID: %d\n", finalLang);
 }
 
 void loop() {

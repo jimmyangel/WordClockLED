@@ -12,7 +12,7 @@ class ClockTask {
   public:
     void start(int core = 1);
     static void taskEntry(void* pvParameters); // Renamed to match .cpp
-    int lang = ENGLISH;
+    int lang = SPANISH;
 
   private:
     void run(); // Added this because it was missing in your .h

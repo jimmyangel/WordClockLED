@@ -3,8 +3,9 @@
 TimeWords tW;
 
 void displayTime(int hours, int minutes, int lang, uint16_t color) {
-  if (lang != SPANISH) lang = ENGLISH;
-  String t = tW.getWords(hours, minutes, lang);
+  int activeLang = (lang == ENGLISH) ? ENGLISH : SPANISH; 
+  String t = tW.getWords(hours, minutes, activeLang);
+  
   t.trim();
 
   String lines[6]; 
