@@ -117,29 +117,60 @@ void timeSync(String ssid, String password) {
   // 2. NORMAL BOOT: Connect and Sync
   WiFi.begin(ssid.c_str(), password.c_str());
   Serial.print("Connecting WiFi");
+
+  if (dma_display != nullptr) {
+    dma_display->fillScreen(0);
+    dma_display->setTextColor(dma_display->color565(100, 100, 100)); // Dim white
+    dma_display->setTextSize(1);
+    dma_display->setCursor(2, 10); // Moved to top
+    dma_display->print("Connecting");
+  }
+
   for (int i = 0; i < 20 && WiFi.status() != WL_CONNECTED; i++) {
     delay(500);
     Serial.print(".");
+    if (dma_display != nullptr) dma_display->print(".");
   }
 
   if (WiFi.status() == WL_CONNECTED) {
     // Load the user's saved timezone offset
     prefs.begin("wordclockwifi", true);
-    long gmtOffset = prefs.getInt("tz_sec", -28800); // Default -8h
+    long gmtOffset = prefs.getInt("tz_sec", -28800); 
     prefs.end();
 
     configTime(gmtOffset, 3600, "pool.ntp.org"); 
+
+    if (dma_display != nullptr) {
+      dma_display->fillScreen(0);
+      dma_display->setCursor(2, 10); // Moved to top
+      dma_display->print("Sync Time");
+    }
 
     struct tm timeInfo;
     int retry = 0;
     while (!getLocalTime(&timeInfo) && retry < 20) {
       delay(500);
+      Serial.print(".");
+      if (dma_display != nullptr) dma_display->print(".");
       retry++;
+    }
+
+    if (dma_display != nullptr) {
+      dma_display->fillScreen(0);
     }
 
     WiFi.disconnect(true);
     WiFi.mode(WIFI_OFF);
     Serial.println("\nTime Synced. WiFi Off.");
+  } else {
+    if (dma_display != nullptr) {
+      dma_display->fillScreen(0);
+      dma_display->setTextColor(dma_display->color565(255, 0, 0)); // Red
+      dma_display->setCursor(2, 10); // Consistency
+      dma_display->print("WiFi Failed");
+      delay(2000);
+      dma_display->fillScreen(0);
+    }
   }
 
   // 4. SAFETY WINDOW (3 seconds)

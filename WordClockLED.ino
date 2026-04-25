@@ -21,7 +21,7 @@ void setup() {
   mxconfig.gpio.e = 18; 
   dma_display = new MatrixPanel_I2S_DMA(mxconfig);
   dma_display->begin();
-  dma_display->setBrightness8(50); 
+  dma_display->setBrightness8(1); 
   dma_display->clearScreen();
   Serial.println("Matrix Initialized...");
 
@@ -35,6 +35,9 @@ void setup() {
 
   // Run the sync/portal logic
   timeSync(ssid, password);
+
+  dma_display->setBrightness8(50); 
+  dma_display->clearScreen();
 
   clockTask.lang = finalLang;
 
