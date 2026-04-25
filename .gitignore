@@ -1,0 +1,25 @@
+# --- Arduino IDE Temps ---
+# Ignore the temporary build folder
+build/
+bin/
+
+# --- VS Code / IntelliSense ---
+# Ignore the hidden VS Code settings (unless you want to share them)
+.vscode
+
+# --- Compiled Files ---
+*.elf
+*.bin
+*.hex
+*.o
+*.d
+*.a
+
+# --- OS Specific ---
+.DS_Store
+Thumbs.db
+
+# --- Optional: Credentials ---
+# If you decide to hardcode secrets later, 
+# it's good practice to keep them in a separate file
+# secrets.h
