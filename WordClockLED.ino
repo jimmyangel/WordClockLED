@@ -1,6 +1,7 @@
 #include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
 #include <Preferences.h>      // Added for credentials
 #include "src/ClockTask.h"
+#include "src/TouchTask.h"
 #include "src/TimeSync.h"      // Added for the sync function
 #include "src/constants.h"
 
@@ -44,12 +45,12 @@ void setup() {
   // 3. Start your Clock Task
   clockTask.start(1);
   Serial.printf("System started with Language ID: %d\n", finalLang);
+
+  TouchTask::start(&clockTask);
+  
 }
 
 void loop() {
   delay(1000); 
 }
-
-
-
 
