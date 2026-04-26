@@ -1,4 +1,4 @@
-## A bilingual word clock using an LED Matrix
+## TicTalk: A bilingual word clock using an LED Matrix
 
 ### *This project is currently under development* 
 
