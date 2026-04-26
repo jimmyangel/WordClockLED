@@ -3,12 +3,25 @@
 #include <Preferences.h>
 #include "TimeSync.h"
 
-// Helper to blend two colors based on a ratio (0.0 to 1.0)
-uint16_t blendColor(uint8_t r1, uint8_t g1, uint8_t b1, uint8_t r2, uint8_t g2, uint8_t b2, float ratio) {
-  uint8_t r = r1 + (r2 - r1) * ratio;
-  uint8_t g = g1 + (g2 - g1) * ratio;
-  uint8_t b = b1 + (b2 - b1) * ratio;
-  return dma_display->color565(r, g, b);
+// Normalized Color Blend Function
+uint16_t blendColorNormalized(uint8_t r1, uint8_t g1, uint8_t b1, uint8_t r2, uint8_t g2, uint8_t b2, float ratio) {
+    // Standard linear blend
+    float r = r1 + (r2 - r1) * ratio;
+    float g = g1 + (g2 - g1) * ratio;
+    float b = b1 + (b2 - b1) * ratio;
+
+    // Calculate current sum
+    float currentSum = r + g + b;
+
+    // Prevent division by zero if all are 0
+    if (currentSum > 0) {
+        float scale = 255.0 / currentSum;
+        r *= scale;
+        g *= scale;
+        b *= scale;
+    }
+
+    return dma_display->color565((uint8_t)r, (uint8_t)g, (uint8_t)b);
 }
 
 void ClockTask::start(int core) {
@@ -41,21 +54,26 @@ void ClockTask::run() {
 
       // 2. COLOR BLENDING MATH
       uint16_t currentColor;
+      float ratio;
+
       if (h >= 6 && h < 12) { // 6am (White) -> 12pm (Orange)
-        float ratio = (h - 6 + m/60.0) / 6.0;
-        currentColor = blendColor(255, 255, 255, 255, 165, 0, ratio);
+          ratio = (h - 6 + m/60.0) / 6.0;
+          // White (85,85,85) -> Orange (200, 55, 0) | Both sum to 255
+          currentColor = blendColorNormalized(85, 85, 85, 200, 55, 0, ratio);
       } 
       else if (h >= 12 && h < 18) { // 12pm (Orange) -> 6pm (Light Blue)
-        float ratio = (h - 12 + m/60.0) / 6.0;
-        currentColor = blendColor(255, 165, 0, 100, 150, 255, ratio);
+          ratio = (h - 12 + m/60.0) / 6.0;
+          // Orange -> Light Blue (50, 100, 105)
+          currentColor = blendColorNormalized(200, 55, 0, 50, 100, 105, ratio);
       } 
       else if (h >= 18 && h < 24) { // 6pm (Light Blue) -> 12am (Dark Blue)
-        float ratio = (h - 18 + m/60.0) / 6.0;
-        currentColor = blendColor(100, 150, 255, 0, 0, 100, ratio);
+          ratio = (h - 18 + m/60.0) / 6.0;
+          // Light Blue -> Dark Blue (0, 0, 255)
+          currentColor = blendColorNormalized(50, 100, 105, 0, 0, 255, ratio);
       } 
       else { // 12am (Dark Blue) -> 6am (White)
-        float ratio = (h < 6) ? (h + m/60.0) / 6.0 : 0; 
-        currentColor = blendColor(0, 0, 100, 255, 255, 255, ratio);
+          ratio = (h < 6) ? (h + m/60.0) / 6.0 : 0; 
+          currentColor = blendColorNormalized(0, 0, 255, 85, 85, 85, ratio);
       }
 
       // 3. DISPLAY UPDATE
@@ -73,6 +91,7 @@ void ClockTask::run() {
     vTaskDelay(pdMS_TO_TICKS(1000));
   }
 }
+
 
 
 

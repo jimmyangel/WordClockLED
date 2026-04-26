@@ -37,7 +37,7 @@ void setup() {
   // Run the sync/portal logic
   timeSync(ssid, password);
 
-  dma_display->setBrightness8(50); 
+  dma_display->setBrightness8(80); 
   dma_display->clearScreen();
 
   clockTask.lang = finalLang;
