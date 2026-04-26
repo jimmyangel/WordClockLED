@@ -152,5 +152,8 @@ void timeSync(String ssid, String password, bool forcePortal) {
       // This allows the user to fix credentials or just let it reboot
       Serial.println("WiFi Failed. Entering Config Portal as fallback...");
       timeSync("", "", true); // Recursive call to trigger SETUP MODE
+
+      return;
     }
+    if (dma_display != nullptr) dma_display->fillScreen(0);
 }
