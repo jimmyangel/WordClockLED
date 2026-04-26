@@ -1,5 +1,7 @@
 ## A bilingual word clock using an LED Matrix
 
+### *This project is currently under development* 
+
 ### Parts list:
 
 * HUB75 RGB LED Matrix Display Panel - P3-64x64
@@ -50,3 +52,5 @@ void loop() {
   // Do nothing
 }
 ```
+---
+*This project was developed with the assistance of Google Gemini.*
