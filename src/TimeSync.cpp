@@ -139,13 +139,18 @@ void timeSync(String ssid, String password, bool forcePortal) {
     WiFi.mode(WIFI_OFF);
     Serial.println("\nTime Synced. WiFi Off.");
   } else {
-    if (dma_display != nullptr) {
-      dma_display->fillScreen(0);
-      dma_display->setTextColor(dma_display->color565(255, 0, 0));
-      dma_display->setCursor(2, 10);
-      dma_display->print("WiFi Failed");
-      delay(2000);
-      dma_display->fillScreen(0);
+      // 3. FAILURE RECOVERY: WiFi failed after 10 seconds of retries
+      if (dma_display != nullptr) {
+        dma_display->fillScreen(0);
+        dma_display->setTextColor(dma_display->color565(255, 0, 0)); // Red Alert
+        dma_display->setCursor(2, 10);
+        dma_display->print("WiFi Failed");
+        delay(2000);
+      }
+      
+      // Instead of just ending, force the portal or reboot
+      // This allows the user to fix credentials or just let it reboot
+      Serial.println("WiFi Failed. Entering Config Portal as fallback...");
+      timeSync("", "", true); // Recursive call to trigger SETUP MODE
     }
-  }
 }
