@@ -1,7 +1,7 @@
 #ifndef TIMEWORDS_H
 #define TIMEWORDS_H
 
-#include <Arduino.h> // Required for String type
+#include <Arduino.h> 
 #include "constants.h"
 
 class TimeWords  {

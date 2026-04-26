@@ -3,7 +3,6 @@
 #include <Preferences.h>
 #include "constants.h"
 
-// Access global display pointer for feedback messages
 extern MatrixPanel_I2S_DMA *dma_display;
 
 // Global WiFiManager instance for callback access
@@ -26,8 +25,7 @@ void saveParamsCallback() {
   
   Preferences p;
   p.begin("wordclockwifi", false);
-  p.putInt("lang", tempLangChoice);
-  p.putInt("tz_sec", (tempTZHours * 3600)); // Save as seconds for sync logic
+  p.putInt("tz_sec", (tempTZHours * 3600)); 
   
   if (WiFi.SSID() != "") {
     p.putString("ssid", WiFi.SSID());
@@ -37,54 +35,41 @@ void saveParamsCallback() {
   Serial.println("Flash Write Complete.");
 }
 
-void timeSync(String ssid, String password) {
+void timeSync(String ssid, String password, bool forcePortal) {
   Preferences prefs;
-  prefs.begin("wordclockwifi", false);
-  
-  // Track boot count for the double-power-cycle trigger
-  int bootCount = prefs.getInt("boot_count", 0);
-  bootCount++;
-  prefs.putInt("boot_count", bootCount);
 
-  // 1. TRIGGER: Double-Boot or Empty SSID
-  if (ssid == "" || bootCount >= 2) {
+  // 1. TRIGGER: Setup Mode (Empty SSID or Brass Post Long-Touch)
+  if (ssid == "" || forcePortal) {
     if (dma_display != nullptr) {
       dma_display->fillScreen(0);
       dma_display->setTextColor(dma_display->color565(255, 255, 255));
+      dma_display->setTextSize(1);
       dma_display->setCursor(2, 12);
       dma_display->print("SETUP MODE");
       dma_display->setCursor(2, 30);
       dma_display->print("WordClock-Setup");
     }
 
-    prefs.putInt("boot_count", 0); 
-    prefs.end();
-
     // Setup WiFiManager Portal
     wm.setSaveParamsCallback(saveParamsCallback);
     wm.setBreakAfterConfig(true); 
 
-    // Custom Menu (Only "Configure Clock" and "Exit")
+    // Custom Menu
     std::vector<const char *> menu = {"custom", "exit"};
     wm.setMenu(menu);
     const char* menuhtml = "<form action='/wifi' method='get'><button>Configure Clock</button></form><br/>";
     wm.setCustomMenuHTML(menuhtml);
 
-    // Custom Parameters (Timezone Hours and Language)
+    // Custom Parameters
     const char* tz_html = "<br/><label for='tz_hours'>GMT Offset (Hours)</label>"
                           "<input type='number' name='tz_hours' id='tz_hours' min='-12' max='14' value='-8' step='1'>";
-    const char* lang_html = "<br/><label for='lang'>Select Language</label>"
-                            "<select name='lang' id='lang'>"
-                            "<option value='0'>Spanish</option>"
-                            "<option value='1'>English</option></select>";
     
     WiFiManagerParameter custom_tz_hours(tz_html);
-    WiFiManagerParameter custom_lang_picker(lang_html);
     wm.addParameter(&custom_tz_hours);
-    wm.addParameter(&custom_lang_picker);
 
     wm.setConfigPortalTimeout(180); 
     if (!wm.startConfigPortal("WordClock-Setup")) {
+       Serial.println("Portal Timeout. Restarting...");
        ESP.restart(); 
     }
 
@@ -95,34 +80,28 @@ void timeSync(String ssid, String password) {
       dma_display->print("SAVED!");
     }
 
-    Serial.println("Rebooting in 3 seconds...");
     delay(3000); 
 
-    // --- HARDWARE SHUTDOWN: Prevent random LED sparkle ---
+    // --- HARDWARE SHUTDOWN ---
     if (dma_display != nullptr) {
       dma_display->fillScreen(0); 
       dma_display->flipDMABuffer();
       dma_display->fillScreen(0);
       delay(100); 
-      pinMode(15, OUTPUT); digitalWrite(15, HIGH); // OE HIGH
-      pinMode(4, OUTPUT);  digitalWrite(4, LOW);  // LAT LOW
-      pinMode(17, OUTPUT); digitalWrite(17, LOW); // CLK LOW
+      pinMode(18, OUTPUT); digitalWrite(18, HIGH); // OE HIGH 
       delay(50);
     }
     ESP.restart(); 
   }
   
-  prefs.end();
-
   // 2. NORMAL BOOT: Connect and Sync
   WiFi.begin(ssid.c_str(), password.c_str());
   Serial.print("Connecting WiFi");
 
   if (dma_display != nullptr) {
     dma_display->fillScreen(0);
-    dma_display->setTextColor(dma_display->color565(100, 100, 100)); // Dim white
-    dma_display->setTextSize(1);
-    dma_display->setCursor(2, 10); // Moved to top
+    dma_display->setTextColor(dma_display->color565(100, 100, 100));
+    dma_display->setCursor(2, 10);
     dma_display->print("Connecting");
   }
 
@@ -133,7 +112,6 @@ void timeSync(String ssid, String password) {
   }
 
   if (WiFi.status() == WL_CONNECTED) {
-    // Load the user's saved timezone offset
     prefs.begin("wordclockwifi", true);
     long gmtOffset = prefs.getInt("tz_sec", -28800); 
     prefs.end();
@@ -142,7 +120,7 @@ void timeSync(String ssid, String password) {
 
     if (dma_display != nullptr) {
       dma_display->fillScreen(0);
-      dma_display->setCursor(2, 10); // Moved to top
+      dma_display->setCursor(2, 10);
       dma_display->print("Sync Time");
     }
 
@@ -155,9 +133,7 @@ void timeSync(String ssid, String password) {
       retry++;
     }
 
-    if (dma_display != nullptr) {
-      dma_display->fillScreen(0);
-    }
+    if (dma_display != nullptr) dma_display->fillScreen(0);
 
     WiFi.disconnect(true);
     WiFi.mode(WIFI_OFF);
@@ -165,17 +141,11 @@ void timeSync(String ssid, String password) {
   } else {
     if (dma_display != nullptr) {
       dma_display->fillScreen(0);
-      dma_display->setTextColor(dma_display->color565(255, 0, 0)); // Red
-      dma_display->setCursor(2, 10); // Consistency
+      dma_display->setTextColor(dma_display->color565(255, 0, 0));
+      dma_display->setCursor(2, 10);
       dma_display->print("WiFi Failed");
       delay(2000);
       dma_display->fillScreen(0);
     }
   }
-
-  // 4. SAFETY WINDOW (3 seconds)
-  delay(3000); 
-  prefs.begin("wordclockwifi", false);
-  prefs.putInt("boot_count", 0);
-  prefs.end();
 }

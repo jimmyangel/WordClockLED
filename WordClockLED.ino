@@ -1,15 +1,15 @@
 #include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
-#include <Preferences.h>      // Added for credentials
+#include <Preferences.h> 
 #include "src/ClockTask.h"
 #include "src/TouchTask.h"
-#include "src/TimeSync.h"      // Added for the sync function
+#include "src/TimeSync.h" 
 #include "src/constants.h"
 
 // Global display pointer
 MatrixPanel_I2S_DMA *dma_display = nullptr;
 
 ClockTask clockTask;
-Preferences preferences;      // Create preferences instance
+Preferences preferences;
 
 void setup() {
   Serial.begin(115200);
@@ -50,7 +50,20 @@ void setup() {
   
 }
 
+bool triggerPortal = false; // Global flag
+
 void loop() {
+  if (triggerPortal) {
+    triggerPortal = false; // Reset flag
+    clockTask.isPaused = true;
+    
+    // Get current credentials
+    preferences.begin("wordclockwifi", true);
+    String s = preferences.getString("ssid", "");
+    String p = preferences.getString("password", "");
+    preferences.end();
+
+    timeSync(s, p, true); // Launch portal
+  }
   delay(1000); 
 }
-

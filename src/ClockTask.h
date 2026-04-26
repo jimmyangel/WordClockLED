@@ -6,19 +6,20 @@
 #include "constants.h"
 
 extern MatrixPanel_I2S_DMA *dma_display;
-void displayTime(int h, int m, int lang); // Declaration for the external function
+void displayTime(int h, int m, int lang); 
 
 class ClockTask {
   public:
     void start(int core = 1);
-    static void taskEntry(void* pvParameters); // Renamed to match .cpp
+    static void taskEntry(void* pvParameters); 
     int lang = SPANISH;
+    bool isPaused = false;
 
   private:
-    void run(); // Added this because it was missing in your .h
+    void run(); 
     int prevH = -1;
     int prevM = -1;
-    int prevL = -1; // Added to track language changes
+    int prevL = -1; 
 };
 
 #endif

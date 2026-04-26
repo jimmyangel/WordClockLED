@@ -59,13 +59,15 @@ void ClockTask::run() {
       }
 
       // 3. DISPLAY UPDATE
-      if (prevM != m || prevH != h || prevL != lang) {
-        if (dma_display != nullptr) {
-          dma_display->fillScreen(0);
-          displayTime(h, m, lang, currentColor);
+      if (!isPaused) { // Only draw if not paused
+        if (prevM != m || prevH != h || prevL != lang) {
+          if (dma_display != nullptr) {
+            dma_display->fillScreen(0);
+            displayTime(h, m, lang, currentColor);
+          }
+          prevH = h; prevM = m; prevL = lang;
+          Serial.printf("Time: %02d:%02d | Color: %04X\n", h, m, currentColor);
         }
-        prevH = h; prevM = m; prevL = lang;
-        Serial.printf("Time: %02d:%02d | Color: %04X\n", h, m, currentColor);
       }
     }
     vTaskDelay(pdMS_TO_TICKS(1000));

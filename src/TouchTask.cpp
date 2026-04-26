@@ -1,5 +1,8 @@
 #include "TouchTask.h"
+#include "TimeSync.h"
 #include <Preferences.h>
+
+extern bool triggerPortal;
 
 void TouchTask::start(ClockTask* clockInstance) {
     xTaskCreatePinnedToCore(taskEntry, "TouchTask", 3072, clockInstance, 1, NULL, 0);
@@ -21,13 +24,11 @@ void TouchTask::taskEntry(void* pvParameters) {
             isTouching = true;
         } 
         else if (val < threshold && isTouching) {
-            if (millis() - startTime > 3000) {
-                Serial.println("TOUCH: WiFi Portal Triggered");
-                // Note: timeSync might need display access; ensure it doesn't crash ClockTask
-                // timeSync(ssid, pass); 
-                isTouching = false;
-                vTaskDelay(pdMS_TO_TICKS(1000));
-            }
+			if (millis() - startTime > 3000) {
+				Serial.println("TOUCH: WiFi Portal Triggered");
+				triggerPortal = true;
+				isTouching = false;
+			}
         } 
         else if (val > threshold + 50 && isTouching) {
             unsigned long duration = millis() - startTime;
