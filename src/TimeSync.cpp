@@ -47,7 +47,7 @@ void timeSync(String ssid, String password, bool forcePortal) {
       dma_display->setCursor(2, 12);
       dma_display->print("SETUP MODE");
       dma_display->setCursor(2, 30);
-      dma_display->print("WordClock-Setup");
+      dma_display->print("TicTalk");
     }
 
     // Setup WiFiManager Portal
@@ -68,7 +68,7 @@ void timeSync(String ssid, String password, bool forcePortal) {
     wm.addParameter(&custom_tz_hours);
 
     wm.setConfigPortalTimeout(180); 
-    if (!wm.startConfigPortal("WordClock-Setup")) {
+    if (!wm.startConfigPortal("TicTalk")) {
        Serial.println("Portal Timeout. Restarting...");
        ESP.restart(); 
     }

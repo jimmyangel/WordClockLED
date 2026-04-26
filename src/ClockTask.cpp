@@ -66,7 +66,7 @@ void ClockTask::run() {
             displayTime(h, m, lang, currentColor);
           }
           prevH = h; prevM = m; prevL = lang;
-          Serial.printf("Time: %02d:%02d | Color: %04X\n", h, m, currentColor);
+          //Serial.printf("Time: %02d:%02d | Color: %04X\n", h, m, currentColor);
         }
       }
     }
