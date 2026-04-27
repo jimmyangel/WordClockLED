@@ -42,12 +42,26 @@ void timeSync(String ssid, String password, bool forcePortal) {
   if (ssid == "" || forcePortal) {
     if (dma_display != nullptr) {
       dma_display->fillScreen(0);
-      dma_display->setTextColor(dma_display->color565(255, 255, 255));
-      dma_display->setTextSize(1);
-      dma_display->setCursor(2, 12);
-      dma_display->print("SETUP MODE");
-      dma_display->setCursor(2, 30);
+        
+      dma_display->setTextColor(dma_display->color565(100, 100, 100));
+      dma_display->setCursor(11, 2); 
+      dma_display->print("Help me");
+
+      dma_display->setCursor(17, 11);
+      dma_display->print("start");
+
+      dma_display->setCursor(2, 25);
+      dma_display->print("Go to WiFi");
+
+      dma_display->setTextColor(dma_display->color565(0, 100, 155)); 
+      dma_display->setCursor(11, 35);
       dma_display->print("TicTalk");
+
+      dma_display->setTextColor(dma_display->color565(100, 100, 100));
+      dma_display->setCursor(2, 47);
+      dma_display->print("Or wait 3m");
+      dma_display->setCursor(2, 55); 
+      dma_display->print("to restart");
     }
 
     // Setup WiFiManager Portal
