@@ -1,5 +1,6 @@
 #include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
-#include <Preferences.h> 
+#include <Preferences.h>
+#include <WiFiManager.h>
 #include "src/ClockTask.h"
 #include "src/TouchTask.h"
 #include "src/TimeSync.h" 
@@ -56,6 +57,10 @@ void loop() {
   if (triggerPortal) {
     triggerPortal = false; // Reset flag
     clockTask.isPaused = true;
+
+    WiFi.disconnect();
+    WiFi.mode(WIFI_OFF);
+    vTaskDelay(pdMS_TO_TICKS(500));
     
     // Get current credentials
     preferences.begin("wordclockwifi", true);
