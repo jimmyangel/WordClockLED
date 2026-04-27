@@ -50,7 +50,7 @@ void setup() {
   
 }
 
-bool triggerPortal = false; // Global flag
+volatile bool triggerPortal = false; // Global flag
 
 void loop() {
   if (triggerPortal) {
@@ -65,5 +65,5 @@ void loop() {
 
     timeSync(s, p, true); // Launch portal
   }
-  delay(1000); 
+  vTaskDelay(pdMS_TO_TICKS(100));
 }
