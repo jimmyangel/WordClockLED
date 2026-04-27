@@ -147,6 +147,31 @@ void timeSync(String ssid, String password, bool forcePortal) {
       retry++;
     }
 
+    // --- NTP FAILURE HANDLER ---
+    if (retry >= 20) {
+      Serial.println("WiFi OK, Internet/NTP blocked.");
+      if (dma_display != nullptr) {
+        dma_display->fillScreen(0);
+        
+        // "No Internet" 
+        dma_display->setTextColor(dma_display->color565(150, 0, 0)); 
+        dma_display->setCursor(11, 22);
+        dma_display->print("No Internet");
+
+        // "Check Router" 
+        dma_display->setTextColor(dma_display->color565(50, 50, 50));
+        dma_display->setCursor(8, 34);
+        dma_display->print("Check Router");
+        
+        delay(5000); 
+      }
+      
+      // RECURSIVE CALL: Triggers "Help me start" / Portal
+      // This will timeout in 180s and reboot the clock.
+      timeSync("", "", true); 
+      return;
+    }
+
     if (dma_display != nullptr) dma_display->fillScreen(0);
 
     WiFi.disconnect(true);
@@ -157,9 +182,9 @@ void timeSync(String ssid, String password, bool forcePortal) {
       if (dma_display != nullptr) {
         dma_display->fillScreen(0);
         dma_display->setTextColor(dma_display->color565(255, 0, 0)); // Red Alert
-        dma_display->setCursor(2, 10);
+        dma_display->setCursor(11, 22);
         dma_display->print("WiFi Failed");
-        delay(2000);
+        delay(5000);
       }
       
       // Instead of just ending, force the portal or reboot
