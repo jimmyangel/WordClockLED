@@ -13,8 +13,8 @@ Preferences preferences;
 
 void setup() {
   Serial.begin(115200);
-  while (!Serial) { delay(10); } 
-  delay(1000);                   
+  while (!Serial) { vTaskDelay(pdMS_TO_TICKS(10)); } 
+  vTaskDelay(pdMS_TO_TICKS(1000));                   
   Serial.println("--- BOOT START ---");
 
   // 1. Initialize Matrix

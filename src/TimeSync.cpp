@@ -94,16 +94,16 @@ void timeSync(String ssid, String password, bool forcePortal) {
       dma_display->print("SAVED!");
     }
 
-    delay(3000); 
+    vTaskDelay(pdMS_TO_TICKS(3000));
 
     // --- HARDWARE SHUTDOWN ---
     if (dma_display != nullptr) {
       dma_display->fillScreen(0); 
       dma_display->flipDMABuffer();
       dma_display->fillScreen(0);
-      delay(100); 
+      vTaskDelay(pdMS_TO_TICKS(100));
       pinMode(18, OUTPUT); digitalWrite(18, HIGH); // OE HIGH 
-      delay(50);
+      vTaskDelay(pdMS_TO_TICKS(50));
     }
     ESP.restart(); 
   }
@@ -120,7 +120,7 @@ void timeSync(String ssid, String password, bool forcePortal) {
   }
 
   for (int i = 0; i < 20 && WiFi.status() != WL_CONNECTED; i++) {
-    delay(500);
+    vTaskDelay(pdMS_TO_TICKS(500));
     Serial.print(".");
     if (dma_display != nullptr) dma_display->print(".");
   }
@@ -141,7 +141,7 @@ void timeSync(String ssid, String password, bool forcePortal) {
     struct tm timeInfo;
     int retry = 0;
     while (!getLocalTime(&timeInfo) && retry < 20) {
-      delay(500);
+      vTaskDelay(pdMS_TO_TICKS(500));
       Serial.print(".");
       if (dma_display != nullptr) dma_display->print(".");
       retry++;
@@ -163,7 +163,7 @@ void timeSync(String ssid, String password, bool forcePortal) {
         dma_display->setCursor(8, 34);
         dma_display->print("Check Router");
         
-        delay(5000); 
+        vTaskDelay(pdMS_TO_TICKS(5000)); 
       }
       
       // RECURSIVE CALL: Triggers "Help me start" / Portal
@@ -184,7 +184,7 @@ void timeSync(String ssid, String password, bool forcePortal) {
         dma_display->setTextColor(dma_display->color565(255, 0, 0)); // Red Alert
         dma_display->setCursor(11, 22);
         dma_display->print("WiFi Failed");
-        delay(5000);
+        vTaskDelay(pdMS_TO_TICKS(5000));
       }
       
       // Instead of just ending, force the portal or reboot
