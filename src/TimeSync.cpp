@@ -32,7 +32,6 @@ void TimeSync::sync(bool isResync) {
     p.end();
 
     if (ssid == "") {
-        // Only launch portal if we aren't doing a background resync
         if (!isResync) launchPortal();
         return;
     }
@@ -44,14 +43,12 @@ void TimeSync::sync(bool isResync) {
     WiFi.mode(WIFI_STA);      
     vTaskDelay(pdMS_TO_TICKS(200)); 
 
-    // UI: Only show "Connecting" if it's the initial boot
     if (!isResync) showUI("CONNECTING");
 
     WiFi.begin(ssid.c_str(), pass.c_str());
 
     int retry = 0;
     while (WiFi.status() != WL_CONNECTED && retry < 40) { 
-        // UI: Only draw spinner if it's the initial boot
         if (!isResync) drawSpinner(retry, 31, 20); 
         vTaskDelay(pdMS_TO_TICKS(500));
         retry++;
@@ -76,18 +73,15 @@ void TimeSync::sync(bool isResync) {
 void TimeSync::launchPortal() {
     showUI("PORTAL_HELP");
 
-    // 1. Explicitly define the menu to remove "Update" and "Info"
-    // This keeps the UI focused only on getting the clock online
     std::vector<const char *> menu = {"wifi", "exit"}; 
     wm.setMenu(menu);
 
-    // 2. Set the Captive Portal Title to your project name
     wm.setTitle("TicTalk Setup");
 
     wm.setSaveParamsCallback(saveParamsCallback);
     wm.setConfigPortalTimeout(180);
     
-    // Custom Parameter for TZ (Ensure this is still there)
+    // Custom Parameter for TZ
     char tz_val[5];
     itoa(gmtOffset_sec / 3600, tz_val, 10);
     WiFiManagerParameter custom_tz("tz_hours", "GMT Offset", tz_val, 4);
@@ -140,7 +134,6 @@ void TimeSync::showUI(const char* state) {
     if (dma_display == nullptr) return;
     dma_display->fillScreen(0);
     
-    // Default Gray for general text
     dma_display->setTextColor(dma_display->color565(100, 100, 100));
 
     if (strcmp(state, "PORTAL_HELP") == 0) {
@@ -156,8 +149,7 @@ void TimeSync::showUI(const char* state) {
     else if (strcmp(state, "CONNECTING") == 0) {
         dma_display->setCursor(2, 10);
         dma_display->print("Connecting");
-        // We don't print dots here because the while() loop 
-        // in sync() handles the serial/visual dots if needed.
+
     }
     else if (strcmp(state, "NTP_SYNC") == 0) {
         dma_display->setCursor(2, 10);
@@ -165,11 +157,11 @@ void TimeSync::showUI(const char* state) {
     }
     else if (strcmp(state, "SAVED") == 0) {
         dma_display->setCursor(2, 28);
-        dma_display->setTextColor(dma_display->color565(0, 255, 255)); // Cyan for success
+        dma_display->setTextColor(dma_display->color565(0, 255, 255)); 
         dma_display->print("SAVED!");
     }
     else if (strcmp(state, "WIFI_FAILED") == 0) {
-        dma_display->setTextColor(dma_display->color565(255, 0, 0)); // Red for Alert
+        dma_display->setTextColor(dma_display->color565(255, 0, 0)); 
         dma_display->setCursor(20, 22); dma_display->print("WiFi");
         dma_display->setCursor(14, 34); dma_display->print("Failed");
     }
@@ -194,10 +186,8 @@ void TimeSync::drawSpinner(int frame, int x, int y) {
     int offsetsX[] = {0, 1, 1, 0};
     int offsetsY[] = {0, 0, 1, 1};
 
-    // 1. Clear the previous spot (optional: or just clear the small area)
     dma_display->fillRect(x, y, 2, 2, dma_display->color565(0, 0, 0));
 
-    // 2. Draw the new frame in your "TicTalk Blue"
     int step = frame % 4;
     dma_display->drawPixel(x + offsetsX[step], y + offsetsY[step], dma_display->color565(0, 100, 155));
 }
