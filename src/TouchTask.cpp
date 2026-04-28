@@ -5,7 +5,7 @@
 extern bool triggerPortal;
 
 void TouchTask::start(ClockTask* clockInstance) {
-    xTaskCreatePinnedToCore(taskEntry, "TouchTask", 3072, clockInstance, 1, NULL, 0);
+    xTaskCreatePinnedToCore(taskEntry, "TouchTask", 3072, clockInstance, 1, NULL, 1);
 }
 
 void TouchTask::taskEntry(void* pvParameters) {
