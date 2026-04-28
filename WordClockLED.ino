@@ -1,74 +1,70 @@
 #include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
 #include <Preferences.h>
-#include <WiFiManager.h>
 #include "src/ClockTask.h"
 #include "src/TouchTask.h"
 #include "src/TimeSync.h" 
 #include "src/constants.h"
 
-// Global display pointer
 MatrixPanel_I2S_DMA *dma_display = nullptr;
-
 ClockTask clockTask;
 Preferences preferences;
 
+volatile bool triggerPortal = false; // Flag set by TouchTask
+
 void setup() {
   Serial.begin(115200);
-  while (!Serial) { vTaskDelay(pdMS_TO_TICKS(10)); } 
-  vTaskDelay(pdMS_TO_TICKS(1000));                   
-  Serial.println("--- BOOT START ---");
+  vTaskDelay(pdMS_TO_TICKS(1000));
+  Serial.println("--- TIC TALK BOOT ---");
 
   // 1. Initialize Matrix
   HUB75_I2S_CFG mxconfig(64, 64, 1);
   mxconfig.gpio.e = 18; 
   dma_display = new MatrixPanel_I2S_DMA(mxconfig);
   dma_display->begin();
-  dma_display->setBrightness8(1); 
-  dma_display->clearScreen();
-  Serial.println("Matrix Initialized...");
+  dma_display->setBrightness8(1); // Keep dim during sync
 
-  // 2. WiFi and Time Sync
-  // Open Preferences in read-only mode (true)
+  // 2. Initial Sync
+  // This now handles reading SSID/Pass and fallback to Portal internally
+  TimeSync::getInstance().sync();
+
+  // 3. Load Language & Resume UI
   preferences.begin("wordclockwifi", true); 
-  String ssid = preferences.getString("ssid", "");
-  String password = preferences.getString("password", "");
-  int finalLang = preferences.getInt("lang", 0); // 0 = SPANISH default
-  preferences.end(); // Close preferences
-
-  // Run the sync/portal logic
-  timeSync(ssid, password);
+  clockTask.lang = preferences.getInt("lang", 0); 
+  preferences.end();
 
   dma_display->setBrightness8(80); 
   dma_display->clearScreen();
 
-  clockTask.lang = finalLang;
-
-  // 3. Start your Clock Task
+  // 4. Start Tasks
   clockTask.start(1);
-  Serial.printf("System started with Language ID: %d\n", finalLang);
-
   TouchTask::start(&clockTask);
-  
 }
 
-volatile bool triggerPortal = false; // Global flag
-
 void loop() {
+  // 1. The Touch Trigger (Priority check)
   if (triggerPortal) {
-    triggerPortal = false; // Reset flag
+    triggerPortal = false; 
     clockTask.isPaused = true;
-
-    WiFi.disconnect();
-    WiFi.mode(WIFI_OFF);
-    vTaskDelay(pdMS_TO_TICKS(500));
     
-    // Get current credentials
-    preferences.begin("wordclockwifi", true);
-    String s = preferences.getString("ssid", "");
-    String p = preferences.getString("password", "");
-    preferences.end();
-
-    timeSync(s, p, true); // Launch portal
+    // Since we're on Core 1, we call this directly. 
+    // It will block the loop until the portal is done or the ESP restarts.
+    TimeSync::getInstance().launchPortal();
   }
-  vTaskDelay(pdMS_TO_TICKS(100));
+
+  // 2. The Weekly Timer (Sunday 3AM)
+  static unsigned long lastCheck = 0;
+  if (millis() - lastCheck > 1000) { // Check once per second
+    lastCheck = millis();
+    
+    struct tm timeinfo;
+    if (getLocalTime(&timeinfo)) {
+      if (timeinfo.tm_wday == 0 && timeinfo.tm_hour == 3 && timeinfo.tm_min == 0 && timeinfo.tm_sec == 0) {
+
+        Serial.println("Scheduled Weekly Resync...");
+        TimeSync::getInstance().sync(true);
+      }
+    }
+  }
+
+  vTaskDelay(pdMS_TO_TICKS(50)); 
 }

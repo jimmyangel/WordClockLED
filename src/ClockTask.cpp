@@ -43,16 +43,7 @@ void ClockTask::run() {
       int m = timeinfo.tm_min;
       int s = timeinfo.tm_sec;
 
-      // 1. WEEKLY SYNC (Sunday 3AM)
-      if (timeinfo.tm_wday == 0 && h == 3 && m == 0 && s == 0) {
-        prefs.begin("wordclockwifi", true);
-        String s_id = prefs.getString("ssid", "");
-        String p_wd = prefs.getString("password", "");
-        prefs.end();
-        if (s_id != "") timeSync(s_id, p_wd);
-      }
-
-      // 2. COLOR BLENDING MATH
+      // COLOR BLENDING MATH
       uint16_t currentColor;
       float ratio;
 
@@ -76,7 +67,7 @@ void ClockTask::run() {
           currentColor = blendColorNormalized(0, 0, 255, 85, 85, 85, ratio);
       }
 
-      // 3. DISPLAY UPDATE
+      // DISPLAY UPDATE
       if (!isPaused) { // Only draw if not paused
         if (prevM != m || prevH != h || prevL != lang) {
           if (dma_display != nullptr) {
@@ -84,7 +75,7 @@ void ClockTask::run() {
             displayTime(h, m, lang, currentColor);
           }
           prevH = h; prevM = m; prevL = lang;
-          //Serial.printf("Time: %02d:%02d | Color: %04X\n", h, m, currentColor);
+          Serial.printf("Time: %02d:%02d | Color: %04X\n", h, m, currentColor);
         }
       }
     }

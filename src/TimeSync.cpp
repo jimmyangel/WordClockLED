@@ -1,203 +1,203 @@
 #include "TimeSync.h"
 #include <WiFiManager.h>
 #include <Preferences.h>
-#include "constants.h"
 
+// Global for callback use
+WiFiManager wm;
 extern MatrixPanel_I2S_DMA *dma_display;
 
-// Global WiFiManager instance for callback access
-WiFiManager wm;
-int tempLangChoice = 0;
-int tempTZHours = -8; // Default to Pacific
-
-// CALLBACK: Captures parameters from the web portal immediately on "Save"
+// Callback for the portal
 void saveParamsCallback() {
-  Serial.println("Save button pressed! Capturing parameters...");
-  
-  if (wm.server->hasArg("lang")) {
-    tempLangChoice = wm.server->arg("lang").toInt();
-  }
-  if (wm.server->hasArg("tz_hours")) {
-    tempTZHours = wm.server->arg("tz_hours").toInt();
-  }
-
-  Serial.printf("Captured -> Lang: %d, TZ Hours: %d. Saving...\n", tempLangChoice, tempTZHours);
-  
-  Preferences p;
-  p.begin("wordclockwifi", false);
-  p.putInt("tz_sec", (tempTZHours * 3600)); 
-  
-  if (WiFi.SSID() != "") {
-    p.putString("ssid", WiFi.SSID());
-    p.putString("password", WiFi.psk());
-  }
-  p.end();
-  Serial.println("Flash Write Complete.");
+    Preferences p;
+    p.begin("wordclockwifi", false);
+    
+    if (wm.server->hasArg("tz_hours")) {
+        int hours = wm.server->arg("tz_hours").toInt();
+        p.putInt("tz_sec", hours * 3600);
+    }
+    p.end();
 }
 
-void timeSync(String ssid, String password, bool forcePortal) {
-  Preferences prefs;
+TimeSync& TimeSync::getInstance() {
+    static TimeSync instance;
+    return instance;
+}
 
-  // 1. TRIGGER: Setup Mode (Empty SSID or Brass Post Long-Touch)
-  if (ssid == "" || forcePortal) {
-    if (dma_display != nullptr) {
-      dma_display->fillScreen(0);
-        
-      dma_display->setTextColor(dma_display->color565(100, 100, 100));
-      dma_display->setCursor(11, 2); 
-      dma_display->print("Help me");
+void TimeSync::sync(bool isResync) {
+    Preferences p;
+    p.begin("wordclockwifi", true);
+    String ssid = p.getString("ssid", "");
+    String pass = p.getString("password", "");
+    gmtOffset_sec = p.getInt("tz_sec", -28800);
+    p.end();
 
-      dma_display->setCursor(17, 11);
-      dma_display->print("start");
-
-      dma_display->setCursor(2, 25);
-      dma_display->print("Go to WiFi");
-
-      dma_display->setTextColor(dma_display->color565(0, 100, 155)); 
-      dma_display->setCursor(11, 35);
-      dma_display->print("TicTalk");
-
-      dma_display->setTextColor(dma_display->color565(100, 100, 100));
-      dma_display->setCursor(2, 47);
-      dma_display->print("Or wait 3m");
-      dma_display->setCursor(2, 55); 
-      dma_display->print("to restart");
+    if (ssid == "") {
+        // Only launch portal if we aren't doing a background resync
+        if (!isResync) launchPortal();
+        return;
     }
 
-    // Setup WiFiManager Portal
-    wm.setSaveParamsCallback(saveParamsCallback);
-    wm.setBreakAfterConfig(true); 
-
-    // Custom Menu
-    std::vector<const char *> menu = {"custom", "exit"};
-    wm.setMenu(menu);
-    const char* menuhtml = "<form action='/wifi' method='get'><button>Configure Clock</button></form><br/>";
-    wm.setCustomMenuHTML(menuhtml);
-
-    // Custom Parameters
-    const char* tz_html = "<br/><label for='tz_hours'>GMT Offset (Hours)</label>"
-                          "<input type='number' name='tz_hours' id='tz_hours' min='-12' max='14' value='-8' step='1'>";
+    WiFi.disconnect(true);    
+    WiFi.mode(WIFI_OFF);      
+    vTaskDelay(pdMS_TO_TICKS(200)); 
     
-    WiFiManagerParameter custom_tz_hours(tz_html);
-    wm.addParameter(&custom_tz_hours);
+    WiFi.mode(WIFI_STA);      
+    vTaskDelay(pdMS_TO_TICKS(200)); 
 
-    wm.setConfigPortalTimeout(180); 
+    // UI: Only show "Connecting" if it's the initial boot
+    if (!isResync) showUI("CONNECTING");
+
+    WiFi.begin(ssid.c_str(), pass.c_str());
+
+    int retry = 0;
+    while (WiFi.status() != WL_CONNECTED && retry < 40) { 
+        // UI: Only draw spinner if it's the initial boot
+        if (!isResync) drawSpinner(retry, 31, 20); 
+        vTaskDelay(pdMS_TO_TICKS(500));
+        retry++;
+    }
+
+    if (WiFi.status() == WL_CONNECTED && attemptNTP(isResync)) {
+        Serial.println("\nSync Success");
+        if (!isResync) clearDisplay();
+        
+        WiFi.disconnect(true);
+        WiFi.mode(WIFI_OFF); 
+    } else {
+        Serial.println("\nSync Failed.");
+        if (!isResync) {
+            showUI("WIFI_FAILED");
+            vTaskDelay(pdMS_TO_TICKS(3000));
+            launchPortal();
+        }
+    }
+}
+
+void TimeSync::launchPortal() {
+    showUI("PORTAL_HELP");
+
+    // 1. Explicitly define the menu to remove "Update" and "Info"
+    // This keeps the UI focused only on getting the clock online
+    std::vector<const char *> menu = {"wifi", "exit"}; 
+    wm.setMenu(menu);
+
+    // 2. Set the Captive Portal Title to your project name
+    wm.setTitle("TicTalk Setup");
+
+    wm.setSaveParamsCallback(saveParamsCallback);
+    wm.setConfigPortalTimeout(180);
+    
+    // Custom Parameter for TZ (Ensure this is still there)
+    char tz_val[5];
+    itoa(gmtOffset_sec / 3600, tz_val, 10);
+    WiFiManagerParameter custom_tz("tz_hours", "GMT Offset", tz_val, 4);
+    wm.addParameter(&custom_tz);
+
     if (!wm.startConfigPortal("TicTalk")) {
-       Serial.println("Portal Timeout. Restarting...");
-       ESP.restart(); 
+        Serial.println("Portal Timeout/Exit. Restarting...");
+        ESP.restart();
     }
 
-    if (dma_display != nullptr) {
-      dma_display->fillScreen(0);
-      dma_display->setCursor(2, 28);
-      dma_display->setTextColor(dma_display->color565(0, 255, 255));
-      dma_display->print("SAVED!");
-    }
+    // Success Path: Save credentials and reboot
+    Preferences p;
+    p.begin("wordclockwifi", false);
+    p.putString("ssid", WiFi.SSID());
+    p.putString("password", WiFi.psk());
+    p.end();
 
-    vTaskDelay(pdMS_TO_TICKS(3000));
-
-    // --- HARDWARE SHUTDOWN ---
-    if (dma_display != nullptr) {
-      dma_display->fillScreen(0); 
-      dma_display->flipDMABuffer();
-      dma_display->fillScreen(0);
-      vTaskDelay(pdMS_TO_TICKS(100));
-      pinMode(18, OUTPUT); digitalWrite(18, HIGH); // OE HIGH 
-      vTaskDelay(pdMS_TO_TICKS(50));
-    }
+    showUI("SAVED");
+    vTaskDelay(pdMS_TO_TICKS(2000));
     ESP.restart(); 
-  }
-  
-  // 2. NORMAL BOOT: Connect and Sync
-  WiFi.begin(ssid.c_str(), password.c_str());
-  Serial.print("Connecting WiFi");
+}
 
-  if (dma_display != nullptr) {
-    dma_display->fillScreen(0);
-    dma_display->setTextColor(dma_display->color565(100, 100, 100));
-    dma_display->setCursor(2, 10);
-    dma_display->print("Connecting");
-  }
-
-  for (int i = 0; i < 20 && WiFi.status() != WL_CONNECTED; i++) {
-    vTaskDelay(pdMS_TO_TICKS(500));
-    Serial.print(".");
-    if (dma_display != nullptr) dma_display->print(".");
-  }
-
-  if (WiFi.status() == WL_CONNECTED) {
-    prefs.begin("wordclockwifi", true);
-    long gmtOffset = prefs.getInt("tz_sec", -28800); 
-    prefs.end();
-
-    configTime(gmtOffset, 3600, "pool.ntp.org"); 
-
-    if (dma_display != nullptr) {
-      dma_display->fillScreen(0);
-      dma_display->setCursor(2, 10);
-      dma_display->print("Sync Time");
-    }
-
+bool TimeSync::attemptNTP(bool isResync) {
+    if (!isResync) showUI("NTP_SYNC");
+    
+    configTime(gmtOffset_sec, 3600, "pool.ntp.org");
+    
     struct tm timeInfo;
     int retry = 0;
+    
     while (!getLocalTime(&timeInfo) && retry < 20) {
-      vTaskDelay(pdMS_TO_TICKS(500));
-      Serial.print(".");
-      if (dma_display != nullptr) dma_display->print(".");
-      retry++;
-    }
-
-    // --- NTP FAILURE HANDLER ---
-    if (retry >= 20) {
-      Serial.println("WiFi OK, Internet/NTP blocked.");
-      if (dma_display != nullptr) {
-        dma_display->fillScreen(0);
+        if (!isResync) {
+            drawSpinner(retry, 31, 25); 
+        }
         
-        // "No Internet" 
+        vTaskDelay(pdMS_TO_TICKS(500));
+        retry++;
+    }
+    
+    if (retry < 20) {
+        Serial.println("NTP Sync Successful.");
+        return true;
+    } else {
+        Serial.println("NTP Sync Timed Out.");
+        return false;
+    }
+}
+
+void TimeSync::showUI(const char* state) {
+    if (dma_display == nullptr) return;
+    dma_display->fillScreen(0);
+    
+    // Default Gray for general text
+    dma_display->setTextColor(dma_display->color565(100, 100, 100));
+
+    if (strcmp(state, "PORTAL_HELP") == 0) {
+        dma_display->setCursor(11, 2); dma_display->print("Help me");
+        dma_display->setCursor(17, 11); dma_display->print("start");
+        dma_display->setCursor(2, 25); dma_display->print("Go to WiFi");
+        dma_display->setTextColor(dma_display->color565(0, 100, 155));
+        dma_display->setCursor(11, 35); dma_display->print("TicTalk");
+        dma_display->setTextColor(dma_display->color565(100, 100, 100));
+        dma_display->setCursor(2, 47); dma_display->print("Or wait 3m");
+        dma_display->setCursor(2, 55); dma_display->print("to restart");
+    } 
+    else if (strcmp(state, "CONNECTING") == 0) {
+        dma_display->setCursor(2, 10);
+        dma_display->print("Connecting");
+        // We don't print dots here because the while() loop 
+        // in sync() handles the serial/visual dots if needed.
+    }
+    else if (strcmp(state, "NTP_SYNC") == 0) {
+        dma_display->setCursor(2, 10);
+        dma_display->print("Sync Time");
+    }
+    else if (strcmp(state, "SAVED") == 0) {
+        dma_display->setCursor(2, 28);
+        dma_display->setTextColor(dma_display->color565(0, 255, 255)); // Cyan for success
+        dma_display->print("SAVED!");
+    }
+    else if (strcmp(state, "WIFI_FAILED") == 0) {
+        dma_display->setTextColor(dma_display->color565(255, 0, 0)); // Red for Alert
+        dma_display->setCursor(20, 22); dma_display->print("WiFi");
+        dma_display->setCursor(14, 34); dma_display->print("Failed");
+    }
+    else if (strcmp(state, "NO_INTERNET") == 0) {
         dma_display->setTextColor(dma_display->color565(150, 0, 0)); 
-        dma_display->setCursor(26, 12); 
-        dma_display->print("No");
-        dma_display->setCursor(8, 22);
-        dma_display->print("Internet");
-
+        dma_display->setCursor(26, 12); dma_display->print("No");
+        dma_display->setCursor(8, 22); dma_display->print("Internet");
         dma_display->setTextColor(dma_display->color565(50, 50, 50));
-        dma_display->setCursor(17, 36);
-        dma_display->print("Check");
-        dma_display->setCursor(14, 46);
-        dma_display->print("Router");
-        
-        vTaskDelay(pdMS_TO_TICKS(5000)); 
-      }
-      
-      // Trigger Portal
-      timeSync("", "", true); 
-      return;
+        dma_display->setCursor(17, 36); dma_display->print("Check");
+        dma_display->setCursor(14, 46); dma_display->print("Router");
     }
+}
 
-    if (dma_display != nullptr) dma_display->fillScreen(0);
+void TimeSync::clearDisplay() {
+    if (dma_display) dma_display->fillScreen(0);
+}
 
-    WiFi.disconnect(true);
-    WiFi.mode(WIFI_OFF);
-    Serial.println("\nTime Synced. WiFi Off.");
-  } else {
-      // 3. FAILURE RECOVERY: WiFi failed after 10 seconds of retries
-      if (dma_display != nullptr) {
-        dma_display->fillScreen(0);
-        dma_display->setTextColor(dma_display->color565(255, 0, 0)); // Red Alert
+void TimeSync::drawSpinner(int frame, int x, int y) {
+    if (dma_display == nullptr) return;
 
-        dma_display->setCursor(20, 22); 
-        dma_display->print("WiFi");
-        dma_display->setCursor(14, 34); 
-        dma_display->print("Failed");
+    // Define 4 positions for a tiny 2x2 "orbit"
+    int offsetsX[] = {0, 1, 1, 0};
+    int offsetsY[] = {0, 0, 1, 1};
 
-        vTaskDelay(pdMS_TO_TICKS(5000));
-      }
-      
-      // Trigger Portal
-      Serial.println("WiFi Failed. Entering Config Portal as fallback...");
-      timeSync("", "", true); // Recursive call to trigger SETUP MODE
+    // 1. Clear the previous spot (optional: or just clear the small area)
+    dma_display->fillRect(x, y, 2, 2, dma_display->color565(0, 0, 0));
 
-      return;
-    }
-    if (dma_display != nullptr) dma_display->fillScreen(0);
+    // 2. Draw the new frame in your "TicTalk Blue"
+    int step = frame % 4;
+    dma_display->drawPixel(x + offsetsX[step], y + offsetsY[step], dma_display->color565(0, 100, 155));
 }
