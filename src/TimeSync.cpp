@@ -155,19 +155,21 @@ void timeSync(String ssid, String password, bool forcePortal) {
         
         // "No Internet" 
         dma_display->setTextColor(dma_display->color565(150, 0, 0)); 
-        dma_display->setCursor(11, 22);
-        dma_display->print("No Internet");
+        dma_display->setCursor(26, 12); 
+        dma_display->print("No");
+        dma_display->setCursor(8, 22);
+        dma_display->print("Internet");
 
-        // "Check Router" 
         dma_display->setTextColor(dma_display->color565(50, 50, 50));
-        dma_display->setCursor(8, 34);
-        dma_display->print("Check Router");
+        dma_display->setCursor(17, 36);
+        dma_display->print("Check");
+        dma_display->setCursor(14, 46);
+        dma_display->print("Router");
         
         vTaskDelay(pdMS_TO_TICKS(5000)); 
       }
       
-      // RECURSIVE CALL: Triggers "Help me start" / Portal
-      // This will timeout in 180s and reboot the clock.
+      // Trigger Portal
       timeSync("", "", true); 
       return;
     }
@@ -182,13 +184,16 @@ void timeSync(String ssid, String password, bool forcePortal) {
       if (dma_display != nullptr) {
         dma_display->fillScreen(0);
         dma_display->setTextColor(dma_display->color565(255, 0, 0)); // Red Alert
-        dma_display->setCursor(11, 22);
-        dma_display->print("WiFi Failed");
+
+        dma_display->setCursor(20, 22); 
+        dma_display->print("WiFi");
+        dma_display->setCursor(14, 34); 
+        dma_display->print("Failed");
+
         vTaskDelay(pdMS_TO_TICKS(5000));
       }
       
-      // Instead of just ending, force the portal or reboot
-      // This allows the user to fix credentials or just let it reboot
+      // Trigger Portal
       Serial.println("WiFi Failed. Entering Config Portal as fallback...");
       timeSync("", "", true); // Recursive call to trigger SETUP MODE
 
