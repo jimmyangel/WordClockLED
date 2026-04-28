@@ -22,17 +22,14 @@ void TouchTask::taskEntry(void* pvParameters) {
         if (val < threshold && !isTouching) {
             startTime = millis();
             isTouching = true;
-        } 
-        else if (val < threshold && isTouching) {
+        } else if (val < threshold && isTouching) {
 			if (millis() - startTime > 3000) {
 				Serial.println("TOUCH: WiFi Portal Triggered");
 				triggerPortal = true;
 				isTouching = false;
 			}
-        } 
-        else if (val > threshold + 50 && isTouching) {
-            unsigned long duration = millis() - startTime;
-            if (duration < 800) {
+        }  else if (val > threshold + 50 && isTouching) {
+            if (millis() - startTime < 800) {
                 // Toggle Language
                 clock->lang = (clock->lang == 0) ? 1 : 0;
                 
