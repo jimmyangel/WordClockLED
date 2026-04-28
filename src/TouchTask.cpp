@@ -11,7 +11,7 @@ void TouchTask::start(ClockTask* clockInstance) {
 void TouchTask::taskEntry(void* pvParameters) {
     ClockTask* clock = (ClockTask*)pvParameters;
     const int touchPin = 32;
-    const int threshold = 850; 
+    const int threshold = 750; 
     bool isTouching = false;
     unsigned long startTime = 0;
     Preferences prefs;
@@ -19,21 +19,25 @@ void TouchTask::taskEntry(void* pvParameters) {
     for (;;) {
         int val = touchRead(touchPin);
 
-        if (val < threshold && !isTouching) {
-            startTime = millis();
-            isTouching = true;
-        } else if (val < threshold && isTouching) {
-			if (millis() - startTime > 3000) {
-				Serial.println("TOUCH: WiFi Portal Triggered");
-				triggerPortal = true;
-				isTouching = false;
-			}
-        }  else if (val > threshold + 50 && isTouching) {
+        if (val < threshold) {
+            dma_display->drawPixel(63, 0, dma_display->color565(0, 150, 0));
+
+            if (!isTouching) {
+                startTime = millis();
+                isTouching = true;
+            } else if (millis() - startTime > 3000) {
+                if (!triggerPortal) {
+                    Serial.println("TOUCH: WiFi Portal Triggered");
+                    triggerPortal = true;
+                }
+            }
+        } else if (val > threshold + 50 && isTouching) {
+            dma_display->drawPixel(63, 0, dma_display->color565(0, 0, 0));
+
             if (millis() - startTime < 800) {
-                // Toggle Language
+                // Quick Tap: Toggle Language
                 clock->lang = (clock->lang == 0) ? 1 : 0;
                 
-                // Persist choice
                 prefs.begin("wordclockwifi", false);
                 prefs.putInt("lang", clock->lang);
                 prefs.end();
@@ -42,6 +46,6 @@ void TouchTask::taskEntry(void* pvParameters) {
             }
             isTouching = false;
         }
-        vTaskDelay(pdMS_TO_TICKS(50));
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
