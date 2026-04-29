@@ -3,7 +3,14 @@
 TimeWords tW;
 
 void displayTime(int hours, int minutes, int lang, uint16_t color) {
-  int activeLang = (lang == ENGLISH) ? ENGLISH : SPANISH; 
+  int activeLang;
+
+  if (lang >= 0 && lang <= 2) {
+      activeLang = lang;
+  } else {
+      activeLang = 0; 
+  }
+
   String t = tW.getWords(hours, minutes, activeLang);
   
   t.trim();
@@ -71,12 +78,4 @@ void displayTime(int hours, int minutes, int lang, uint16_t color) {
     }
   }
 }
-
-
-
-
-
-
-
-
 
