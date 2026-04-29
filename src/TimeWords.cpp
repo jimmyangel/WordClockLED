@@ -22,7 +22,7 @@ String TimeWords::articleText[3][2] = {
 
 String TimeWords::fractionText[3][4] = {
     {"PASADAS", "BIEN PASADAS", "CASI", "CASI CASI"},
-    {"A LITTLE BIT OVER", "A BIT OVER", "ALMOST", "NEARLY ALMOST"},
+    {"A LITTLE BIT OVER", "A BIT OVER", "ALMOST", "NEARLY"},
     {"PASSEES", "BIEN PASSEES", "BIENTOT", "TOUT PRES"}
 };
 
