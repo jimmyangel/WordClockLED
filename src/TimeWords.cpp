@@ -23,7 +23,7 @@ String TimeWords::articleText[3][2] = {
 String TimeWords::fractionText[3][4] = {
     {"PASADAS", "BIEN PASADAS", "CASI", "CASI CASI"},
     {"A LITTLE BIT OVER", "A BIT OVER", "ALMOST", "NEARLY"},
-    {"PASSEES", "BIEN PASSEES", "BIENTOT", "TOUT PRES"}
+    {"PASS\x90\x45S", "BIEN PASS\x90\x45S", "BIENT\x93T", "TOUT PR\x8aS"}
 };
 
 String TimeWords::numbersText[3][12] = {
@@ -103,11 +103,18 @@ String &TimeWords::getWords(int hour, int minutes, int lang) {
 
   // 5. Final French Refinements
   if (lang == FRENCH) {
+      // 5a. Handle Midi/Minuit vs Heures redundancy
       fT.replace("MIDI HEURES", "MIDI");
       fT.replace("MINUIT HEURES", "MINUIT");
-      
-      // Emergency length brake for the 64x64 display
+
+      // 5b. Grammar Fix: Masculine Singular for Midi/Minuit
+      if (fT.indexOf("MIDI") >= 0 || fT.indexOf("MINUIT") >= 0) {
+          fT.replace("PASS\x90\x45S", "PASS\x90"); 
+      }
+
+      // 5c. Emergency length brake for the 64x64 display
       if (fT.length() > 45) { 
+          // Removes "C'EST" to save vertical space
           fT.replace(preText[FRENCH][1], ""); 
       }
   }
