@@ -58,9 +58,9 @@ void loop() {
     
     struct tm timeinfo;
     if (getLocalTime(&timeinfo)) {
-      if (timeinfo.tm_wday == 0 && timeinfo.tm_hour == 3 && timeinfo.tm_min == 0 && timeinfo.tm_sec == 0) {
+      if (timeinfo.tm_hour == 3 && timeinfo.tm_min == 0 && timeinfo.tm_sec == 0) {
 
-        Serial.println("Scheduled Weekly Resync...");
+        Serial.println("Scheduled Nightly Resync...");
         TimeSync::getInstance().sync(true);
       }
     }
