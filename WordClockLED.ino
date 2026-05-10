@@ -52,7 +52,7 @@ void loop() {
     TimeSync::getInstance().launchPortal();
   }
 
-  // 2. The Weekly Timer (Sunday 3AM)
+  // 2. The Nightly Timer (At 3AM)
   static unsigned long lastCheck = 0;
   if (millis() - lastCheck > 1000) { // Check once per second
     lastCheck = millis();
