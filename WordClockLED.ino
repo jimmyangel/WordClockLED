@@ -19,6 +19,7 @@ void setup() {
   // 1. Initialize Matrix
   HUB75_I2S_CFG mxconfig(64, 64, 1);
   mxconfig.gpio.e = 18; 
+  mxconfig.clkphase = false;
   dma_display = new MatrixPanel_I2S_DMA(mxconfig);
   dma_display->begin();
   dma_display->setBrightness8(1); // Keep dim during sync
@@ -32,7 +33,7 @@ void setup() {
   clockTask.lang = preferences.getInt("lang", 0); 
   preferences.end();
 
-  dma_display->setBrightness8(80); 
+  dma_display->setBrightness8(160); 
   dma_display->clearScreen();
 
   // 4. Start Tasks
