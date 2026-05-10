@@ -44,8 +44,6 @@ void TouchTask::taskEntry(void* pvParameters) {
                 
                 const char* langNames[] = {"Spanish", "English", "French"};
                 Serial.printf("TOUCH: Lang Switched to %d (%s)\n", clock->lang, langNames[clock->lang]);
-                
-                // Trigger your simple green feedback LED here if you have it!
             }
             isTouching = false;
         }

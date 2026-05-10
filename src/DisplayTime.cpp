@@ -2,7 +2,6 @@
 
 TimeWords tW;
 
-// Reliable integer flags for character matching
 #define TYPE_E_ACUTE 1
 #define TYPE_O_CIRC  2
 #define TYPE_E_GRAVE 3
@@ -27,12 +26,12 @@ void drawCustomFrench(int x, int y, int type, uint16_t color) {
     if (type == TYPE_E_ACUTE) { // É (\x90)
       dma_display->drawPixel(x + 3, y, color); 
       dma_display->drawPixel(x + 2, y + 1, color);
-    } else { // È (\x8a) - Now shifted right by 1px
+    } else { 
       dma_display->drawPixel(x + 1, y, color); 
       dma_display->drawPixel(x + 2, y + 1, color);
     }
   } 
-  else if (type == TYPE_O_CIRC) { // Ô (\x93) - Custom rounded map
+  else if (type == TYPE_O_CIRC) { 
     // Row 0: Peak
     dma_display->drawPixel(x + 2, y, color);
     // Row 1: Shoulders
@@ -55,12 +54,10 @@ void drawCustomFrench(int x, int y, int type, uint16_t color) {
 }
 
 void displayTime(int hours, int minutes, int lang, uint16_t color) {
-  // Use project ledger: French is 2
   int activeLang = (lang >= 0 && lang <= 2) ? lang : 0;
   String t = tW.getWords(hours, minutes, activeLang);
   t.trim();
 
-  // Line breaking logic
   String lines[6]; 
   int lineCount = 0;
   int start = 0;
