@@ -8,12 +8,12 @@ class TimeWords  {
   public:
     String &getWords(int hour, int minutes, int lang);
   private: 
-    static String preText[2][2];
-    static String postText[2][1];
-    static String articleText[2][2];
-    static String fractionText[2][4];
-    static String numbersText[2][12];
-    static String numbersModText[2][12];
+    static String preText[3][2];
+    static String postText[3][1];
+    static String articleText[3][2];
+    static String fractionText[3][4];
+    static String numbersText[3][12];
+    static String numbersModText[3][12];
     String fT;
 };
 

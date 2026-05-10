@@ -35,14 +35,17 @@ void TouchTask::taskEntry(void* pvParameters) {
             dma_display->drawPixel(63, 0, dma_display->color565(0, 0, 0));
 
             if (millis() - startTime < 800) {
-                // Quick Tap: Toggle Language
-                clock->lang = (clock->lang == 0) ? 1 : 0;
+                // Quick Tap: Toggle Language (0: Spanish, 1: English, 2: French)
+                clock->lang = (clock->lang + 1) % 3;
                 
                 prefs.begin("wordclockwifi", false);
                 prefs.putInt("lang", clock->lang);
                 prefs.end();
                 
-                Serial.printf("TOUCH: Lang Switched to %d\n", clock->lang);
+                const char* langNames[] = {"Spanish", "English", "French"};
+                Serial.printf("TOUCH: Lang Switched to %d (%s)\n", clock->lang, langNames[clock->lang]);
+                
+                // Trigger your simple green feedback LED here if you have it!
             }
             isTouching = false;
         }
