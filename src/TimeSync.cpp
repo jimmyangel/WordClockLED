@@ -87,7 +87,9 @@ void TimeSync::launchPortal() {
     WiFiManagerParameter custom_tz("tz_hours", "GMT Offset", tz_val, 4);
     wm.addParameter(&custom_tz);
 
-    if (!wm.startConfigPortal("TicTalk")) {
+    String uniqueSSID = "TicTalk-" + String((uint32_t)ESP.getEfuseMac(), HEX).substring(0, 4);
+
+    if (!wm.startConfigPortal(uniqueSSID.c_str())) {
         Serial.println("Portal Timeout/Exit. Restarting...");
         ESP.restart();
     }
