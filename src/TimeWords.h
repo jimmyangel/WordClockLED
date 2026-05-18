@@ -14,7 +14,8 @@ class TimeWords  {
     static String fractionText[3][4];
     static String numbersText[3][12];
     static String numbersModText[3][12];
-    String fT;
+    static String numbersFrench24[24];
+    static String fT;
 };
 
 #endif
