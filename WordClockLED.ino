@@ -22,7 +22,7 @@ void setup() {
   mxconfig.clkphase = false;
   dma_display = new MatrixPanel_I2S_DMA(mxconfig);
   dma_display->begin();
-  dma_display->setBrightness8(1); // Keep dim during sync
+  dma_display->setBrightness8(160);
 
   // 2. Initial Sync
   // This now handles reading SSID/Pass and fallback to Portal internally
@@ -33,7 +33,6 @@ void setup() {
   clockTask.lang = preferences.getInt("lang", 0); 
   preferences.end();
 
-  dma_display->setBrightness8(160); 
   dma_display->clearScreen();
 
   // 4. Start Tasks
