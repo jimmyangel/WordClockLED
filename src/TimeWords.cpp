@@ -33,8 +33,7 @@ String TimeWords::numbersText[4][12] = {
     {"UNA", "DOS", "TRES", "CUATRO", "CINCO", "SEIS", "SIETE", "OCHO", "NUEVE", "DIEZ", "ONCE", "DOCE"},
     {"ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN", "ELEVEN", "TWELVE"},
     {"", "", "", "", "", "", "", "", "", "", "", ""},
-    {"EINS", "ZWEI", "DREI", "VIER", "FÜNF", "SECHS", "SIEBEN", "ACHT", "NEUN", "ZEHN", "ELF", "ZWÖLF"}
-};
+    {"EINS", "ZWEI", "DREI", "VIER", "F\x9ANF", "SECHS", "SIEBEN", "ACHT", "NEUN", "ZEHN", "ELF", "ZW\x99LF"}};
 
 String TimeWords::numbersFrench24[24] = {
     "MINUIT", "UNE HEURE", "DEUX HEURES", "TROIS HEURES", "QUATRE HEURES", "CINQ HEURES", 
@@ -47,8 +46,7 @@ String TimeWords::numbersModText[4][12] = {
     {"Y CINCO", "Y DIEZ", "Y CUARTO", "Y VEINTE", "Y VEINTICINCO", "Y MEDIA", "VEINTICINCO PARA", "VEINTE PARA", "UN CUARTO PARA", "DIEZ PARA", "CINCO PARA", ""},
     {"FIVE AFTER", "TEN AFTER", "QUARTER PAST", "TWENTY AFTER", "TWENTY-FIVE AFTER", "HALF PAST", "TWENTY-FIVE TO", "TWENTY TO", "QUARTER TO", "TEN TO", "FIVE TO", ""},
     {"CINQ", "DIX", "ET QUART", "VINGT", "VINGT-CINQ", "ET DEMIE", "MOINS VINGT-CINQ", "MOINS VINGT", "MOINS LE QUART", "MOINS DIX", "MOINS CINQ", ""},
-    {"FÜNF NACH", "ZEHN NACH", "VIERTEL NACH", "ZWANZIG NACH", "FÜNF VOR HALB", "HALB", "FÜNF NACH HALB", "ZWANZIG VOR", "VIERTEL VOR", "ZEHN VOR", "FÜNF VOR", ""}
-};
+    {"F\x9ANF NACH", "ZEHN NACH", "VIERTEL NACH", "ZWANZIG NACH", "F\x9ANF VOR HALB", "HALB", "F\x9ANF NACH HALB", "ZWANZIG VOR", "VIERTEL VOR", "ZEHN VOR", "F\x9ANF VOR", ""}};
 
 String TimeWords::fT = "";
 
