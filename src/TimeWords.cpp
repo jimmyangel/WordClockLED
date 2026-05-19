@@ -140,9 +140,22 @@ String &TimeWords::getWords(int hour, int minutes, int lang) {
   }
   
   // 9. German Grammar Refinements
+// 9. German Grammar & Structural Refinements
   if (lang == GERMAN) {
       // Fix: "ES IST EINS UHR" -> "ES IST EIN UHR"
       fT.replace("EINS UHR", "EIN UHR");
+
+      // Fix double-nach for "KURZ NACH" (e.g., 7:11 -> "KURZ NACH ZEHN SIEBEN")
+      fT.replace("KURZ NACH F\x9ANF NACH", "KURZ NACH F\x9ANF");  
+      fT.replace("KURZ NACH ZEHN NACH", "KURZ NACH ZEHN");    
+      fT.replace("KURZ NACH VIERTEL NACH", "KURZ NACH VIERTEL"); 
+      fT.replace("KURZ NACH ZWANZIG NACH", "KURZ NACH ZWANZIG"); 
+
+      // Fix double-nach for "EIN BISSCHEN NACH" (e.g., 7:12 -> "EIN BISSCHEN NACH ZEHN SIEBEN")
+      fT.replace("EIN BISSCHEN NACH F\x9ANF NACH", "EIN BISSCHEN NACH F\x9ANF");  
+      fT.replace("EIN BISSCHEN NACH ZEHN NACH", "EIN BISSCHEN NACH ZEHN");    
+      fT.replace("EIN BISSCHEN NACH VIERTEL NACH", "EIN BISSCHEN NACH VIERTEL"); 
+      fT.replace("EIN BISSCHEN NACH ZWANZIG NACH", "EIN BISSCHEN NACH ZWANZIG"); 
   }
   
   // Cleanup whitespace
