@@ -54,7 +54,7 @@ void drawCustomFrench(int x, int y, int type, uint16_t color) {
 }
 
 void displayTime(int hours, int minutes, int lang, uint16_t color) {
-  int activeLang = (lang >= 0 && lang <= 2) ? lang : 0;
+  int activeLang = (lang >= SPANISH && lang <= GERMAN) ? lang : SPANISH;
   String t = tW.getWords(hours, minutes, activeLang);
   t.trim();
 
