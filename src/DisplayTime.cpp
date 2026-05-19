@@ -65,7 +65,10 @@ void displayTime(int hours, int minutes, int lang, uint16_t color) {
 
   while (start < t.length() && lineCount < 6) {
     int end = t.indexOf(' ', start + 1);
-    if (t.substring(start).startsWith("VEINTICINCO") || t.substring(start).startsWith("TWENTY-FIVE")) {
+    if (t.substring(start).startsWith("VEINTICINCO") || 
+        t.substring(start).startsWith("TWENTY-FIVE") ||
+        t.substring(start).startsWith("VINGT-TROIS")) {
+        
         end = start + 11; 
     } else {
         while (end != -1 && end - start <= standardMax) {
