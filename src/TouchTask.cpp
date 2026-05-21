@@ -26,7 +26,7 @@ void TouchTask::taskEntry(void* pvParameters) {
                 startTime = millis();
                 isTouching = true;
             } else if (millis() - startTime > 3000) {
-                if (!triggerPortal) {
+                if (!triggerPortal && !clock->isPaused) {
                     Serial.println("TOUCH: WiFi Portal Triggered");
                     triggerPortal = true;
                 }

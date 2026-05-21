@@ -14,7 +14,7 @@ volatile bool triggerPortal = false; // Flag set by TouchTask
 void setup() {
   Serial.begin(115200);
   vTaskDelay(pdMS_TO_TICKS(1000));
-  Serial.println("--- TIC TALK BOOT (V4.1) ---");
+  Serial.println("--- TIC TALK BOOT (V4.2) ---");
 
   // 1. Initialize Matrix
   HUB75_I2S_CFG mxconfig(64, 64, 1);
