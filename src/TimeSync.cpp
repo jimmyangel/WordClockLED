@@ -36,11 +36,15 @@ void TimeSync::sync(bool isResync) {
         return;
     }
 
-    WiFi.disconnect(true);    
-    WiFi.mode(WIFI_OFF);      
-    vTaskDelay(pdMS_TO_TICKS(200)); 
+    WiFi.disconnect(true);
+    WiFi.mode(WIFI_OFF);
     
-    WiFi.mode(WIFI_STA);      
+    vTaskDelay(pdMS_TO_TICKS(200)); 
+    WiFi.mode(WIFI_STA); 
+
+    // FORCE MAXIMUM ANTENNA POWER (Disables power-saving throttling)
+    WiFi.setSleep(WIFI_PS_NONE);
+
     vTaskDelay(pdMS_TO_TICKS(200)); 
 
     if (!isResync) showUI("CONNECTING");
@@ -48,7 +52,7 @@ void TimeSync::sync(bool isResync) {
     WiFi.begin(ssid.c_str(), pass.c_str());
 
     int retry = 0;
-    while (WiFi.status() != WL_CONNECTED && retry < 40) { 
+    while (WiFi.status() != WL_CONNECTED && retry < 80) { 
         if (!isResync) drawSpinner(retry, 31, 20); 
         vTaskDelay(pdMS_TO_TICKS(500));
         retry++;
@@ -57,7 +61,6 @@ void TimeSync::sync(bool isResync) {
     if (WiFi.status() == WL_CONNECTED && attemptNTP(isResync)) {
         Serial.println("\nSync Success");
         if (!isResync) clearDisplay();
-        
         WiFi.disconnect(true);
         WiFi.mode(WIFI_OFF); 
     } else {
@@ -109,7 +112,7 @@ void TimeSync::launchPortal() {
 bool TimeSync::attemptNTP(bool isResync) {
     if (!isResync) showUI("NTP_SYNC");
     
-    configTime(gmtOffset_sec, 3600, "pool.ntp.org");
+    configTime(gmtOffset_sec, 3600, "162.159.200.1");
     
     struct tm timeInfo;
     int retry = 0;
