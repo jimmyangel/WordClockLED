@@ -6,16 +6,48 @@
 WiFiManager wm;
 extern MatrixPanel_I2S_DMA *dma_display;
 
+WiFiManagerParameter* p_custom_tz = nullptr;
+
 // Callback for the portal
 void saveParamsCallback() {
     Preferences p;
     p.begin("wordclockwifi", false);
     
-    if (wm.server->hasArg("tz_hours")) {
-        int hours = wm.server->arg("tz_hours").toInt();
-        p.putInt("tz_sec", hours * 3600);
+    String tzRule = "";
+
+    // 1. Try reading the distinct HTML selection key directly from the server stream
+    if (wm.server->hasArg("tz_selection")) {
+        tzRule = wm.server->arg("tz_selection");
+    } 
+    // 2. Fallback to using the custom parameter reference buffer if server argument fails
+    else if (p_custom_tz != nullptr) {
+        tzRule = String(p_custom_tz->getValue());
     }
+
+    tzRule.trim();
+
+    if (tzRule.length() > 0) {
+        p.putString("tz_rule", tzRule);
+        Serial.println("Portal Save: Timezone string updated to: " + tzRule);
+    } else {
+        Serial.println("Portal Save: Error! Could not extract string from web parameter.");
+    }
+
+    // Protect current Wi-Fi settings
+    String newSSID = WiFi.SSID();
+    if (newSSID.length() > 0) {
+        Serial.println("Portal Save: New Wi-Fi network provided. Updating flash...");
+        p.putString("ssid", newSSID);
+        p.putString("password", WiFi.psk());
+    } else {
+        Serial.println("Portal Save: No Wi-Fi changes. Preserved current configuration.");
+    }
+    
     p.end();
+    
+    Serial.println("Portal Save Complete. Rebooting clock...");
+    vTaskDelay(pdMS_TO_TICKS(500)); 
+    ESP.restart();
 }
 
 TimeSync& TimeSync::getInstance() {
@@ -78,61 +110,72 @@ void TimeSync::launchPortal() {
 
     std::vector<const char *> menu = {"wifi", "exit"}; 
     wm.setMenu(menu);
-
     wm.setTitle("TicTalk Setup");
-
     wm.setSaveParamsCallback(saveParamsCallback);
     wm.setConfigPortalTimeout(180);
     
-    // Custom Parameter for TZ
-    char tz_val[5];
-    itoa(gmtOffset_sec / 3600, tz_val, 10);
-    WiFiManagerParameter custom_tz("tz_hours", "GMT Offset", tz_val, 4);
-    wm.addParameter(&custom_tz);
+    // Notice we changed name and id to 'tz_selection' inside the HTML string
+    const char* tz_dropdown_html = 
+        "<br/><label for='tz_selection'>Select Your Timezone</label><br/>"
+        "<select name='tz_selection' id='tz_selection' style='width:100%; padding:10px; font-size:16px; margin-bottom:10px;'>"
+        "  <option value='PST8PDT,M3.2.0,M11.1.0'>US Pacific Time (PST/PDT)</option>"
+        "  <option value='EST5EDT,M3.2.0,M11.1.0'>US Eastern Time (EST/EDT)</option>"
+        "  <option value='CST6CDT,M3.2.0,M11.1.0'>US Central Time (CST/CDT)</option>"
+        "  <option value='MST7MDT,M3.2.0,M11.1.0'>US Mountain Time (MST/MDT)</option>"
+        "  <option value='AST4ADT,M3.2.0,M11.1.0'>Atlantic Time (AST/ADT)</option>"
+        "  <option value='AKST9AKDT,M3.2.0,M11.1.0'>Alaska Time (AKST/AKDT)</option>"
+        "  <option value='HST10'>Hawaii Time (HST - No DST)</option>"
+        "  <option value='CET-1CEST-2,M3.5.0/2,M10.5.0/3'>Central Europe (CET/CEST)</option>"
+        "  <option value='GMT0BST-1,M3.5.0/1,M10.5.0/2'>United Kingdom (GMT/BST)</option>"
+        "  <option value='AEST-10AEDT,M10.1.0,M4.1.0'>Eastern Australia (AEST/AEDT)</option>"
+        "</select>"
+        "<style>#custom_tz_t, input[name='custom_tz'] { display: none !important; }</style>";
+
+    // Changed buffer length constraint from 64 to 256
+    WiFiManagerParameter custom_tz_param("custom_tz", "", "", 256, tz_dropdown_html, WFM_LABEL_BEFORE);
+    wm.addParameter(&custom_tz_param);
+
+    p_custom_tz = &custom_tz_param; 
 
     String uniqueSSID = "TicTalk-" + String((uint32_t)ESP.getEfuseMac(), HEX).substring(0, 4);
 
-    if (!wm.startConfigPortal(uniqueSSID.c_str())) {
-        Serial.println("Portal Timeout/Exit. Restarting...");
-        ESP.restart();
-    }
+    wm.startConfigPortal(uniqueSSID.c_str());
 
-    // Success Path: Save credentials and reboot
-    Preferences p;
-    p.begin("wordclockwifi", false);
-    p.putString("ssid", WiFi.SSID());
-    p.putString("password", WiFi.psk());
-    p.end();
-
-    showUI("SAVED");
-    vTaskDelay(pdMS_TO_TICKS(2000));
-    ESP.restart(); 
+    Serial.println("Portal Timeout or Exit hit without saving. Restarting clock...");
+    ESP.restart();
 }
 
 bool TimeSync::attemptNTP(bool isResync) {
     if (!isResync) showUI("NTP_SYNC");
     
-    configTime(gmtOffset_sec, 3600, "162.159.200.1");
+    Preferences p;
+    p.begin("wordclockwifi", true);
+    // Read the string rule directly, fallback to Pacific Time if empty
+    String tzRule = p.getString("tz_rule", "PST8PDT,M3.2.0,M11.1.0");
+    p.end();
+
+    Serial.printf("Applying System Timezone Rule: %s\n", tzRule.c_str());
+
+    // Pass the saved string straight to the Espressif framework
+    configTzTime(tzRule.c_str(), "162.159.200.1", "pool.ntp.org");
     
+    // Standard spinner wait loop
     struct tm timeInfo;
     int retry = 0;
-    
     while (!getLocalTime(&timeInfo) && retry < 20) {
-        if (!isResync) {
-            drawSpinner(retry, 31, 25); 
-        }
-        
+        if (!isResync) drawSpinner(retry, 31, 25); 
         vTaskDelay(pdMS_TO_TICKS(500));
         retry++;
     }
     
     if (retry < 20) {
         Serial.println("NTP Sync Successful.");
+        Serial.printf("Local Time: %02d:%02d:%02d (DST Status: %s)\n", 
+                      timeInfo.tm_hour, timeInfo.tm_min, timeInfo.tm_sec,
+                      timeInfo.tm_isdst > 0 ? "Daylight Time" : "Standard Time");
         return true;
-    } else {
-        Serial.println("NTP Sync Timed Out.");
-        return false;
     }
+    return false;
 }
 
 void TimeSync::showUI(const char* state) {
