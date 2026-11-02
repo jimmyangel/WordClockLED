@@ -15,22 +15,25 @@ void saveParamsCallback() {
     
     String tzRule = "";
 
-    // 1. Try reading the distinct HTML selection key directly from the server stream
-    if (wm.server->hasArg("tz_selection")) {
-        tzRule = wm.server->arg("tz_selection");
+    // Check if a numeric override was provided (takes priority if filled)
+    if (wm.server->hasArg("tz_override") && wm.server->arg("tz_override").length() > 0) {
+        int hourOffset = wm.server->arg("tz_override").toInt();
+        // POSIX sign convention: UTC offset of +1 needs to be written as -1
+        int posixSignOffset = -hourOffset;
+        tzRule = "FIXED" + String(posixSignOffset);
+        Serial.println("Portal Save: Numeric override used (" + String(hourOffset) + "). Generated rule: " + tzRule);
     } 
-    // 2. Fallback to using the custom parameter reference buffer if server argument fails
-    else if (p_custom_tz != nullptr) {
-        tzRule = String(p_custom_tz->getValue());
+    // Otherwise, use the selection from dropdown list
+    else if (wm.server->hasArg("tz_select") && wm.server->arg("tz_select").length() > 0) {
+        tzRule = wm.server->arg("tz_select");
+        tzRule.trim();
+        Serial.println("Portal Save: Dropdown timezone string updated to: " + tzRule);
     }
-
-    tzRule.trim();
 
     if (tzRule.length() > 0) {
         p.putString("tz_rule", tzRule);
-        Serial.println("Portal Save: Timezone string updated to: " + tzRule);
     } else {
-        Serial.println("Portal Save: Error! Could not extract string from web parameter.");
+        Serial.println("Portal Save: Warning! No timezone selected or override entered.");
     }
 
     // Protect current Wi-Fi settings
@@ -114,10 +117,11 @@ void TimeSync::launchPortal() {
     wm.setSaveParamsCallback(saveParamsCallback);
     wm.setConfigPortalTimeout(180);
     
-    // Notice we changed name and id to 'tz_selection' inside the HTML string
-    const char* tz_dropdown_html = 
-        "<br/><label for='tz_selection'>Select Your Timezone</label><br/>"
-        "<select name='tz_selection' id='tz_selection' style='width:100%; padding:10px; font-size:16px; margin-bottom:10px;'>"
+    // Dropdown + an optional numeric override box at the bottom
+    const char* tz_form_html = 
+        "<br/><label for='tz_select'><b>Select Timezone (Standard with DST)</b></label><br/>"
+        "<select name='tz_select' id='tz_select' style='width:100%; padding:10px; font-size:16px; margin-bottom:10px;'>"
+        "  <option value=''>-- Choose from list --</option>"
         "  <option value='PST8PDT,M3.2.0,M11.1.0'>US Pacific Time (PST/PDT)</option>"
         "  <option value='EST5EDT,M3.2.0,M11.1.0'>US Eastern Time (EST/EDT)</option>"
         "  <option value='CST6CDT,M3.2.0,M11.1.0'>US Central Time (CST/CDT)</option>"
@@ -125,19 +129,37 @@ void TimeSync::launchPortal() {
         "  <option value='AST4ADT,M3.2.0,M11.1.0'>Atlantic Time (AST/ADT)</option>"
         "  <option value='AKST9AKDT,M3.2.0,M11.1.0'>Alaska Time (AKST/AKDT)</option>"
         "  <option value='HST10'>Hawaii Time (HST - No DST)</option>"
-        "  <option value='CET-1CEST-2,M3.5.0/2,M10.5.0/3'>Central Europe (CET/CEST)</option>"
-        "  <option value='GMT0BST-1,M3.5.0/1,M10.5.0/2'>United Kingdom (GMT/BST)</option>"
+        "  <option value='CET-1CEST-2,M3.5.0/2,M10.5.0/3'>Central Europe / Spain (CET/CEST)</option>"
+        "  <option value='GMT0BST-1,M3.5.0/1,M10.5.0/2'>UK / Portugal (GMT/BST)</option>"
         "  <option value='AEST-10AEDT,M10.1.0,M4.1.0'>Eastern Australia (AEST/AEDT)</option>"
         "</select>"
+        "<br/><label for='tz_override'><b>Or Override with Fixed Offset Number (If DST is abolished)</b></label><br/>"
+        "<input type='number' name='tz_override' id='tz_override' min='-12' max='14' placeholder='e.g. -5 or 1 (leave blank to use dropdown)' style='width:100%; padding:8px; font-size:14px; box-sizing:border-box; margin-bottom:10px;'/>"
         "<style>#custom_tz_t, input[name='custom_tz'] { display: none !important; }</style>";
 
-    // Changed buffer length constraint from 64 to 256
-    WiFiManagerParameter custom_tz_param("custom_tz", "", "", 256, tz_dropdown_html, WFM_LABEL_BEFORE);
+    WiFiManagerParameter custom_tz_param("custom_tz", "", "", 256, tz_form_html, WFM_LABEL_BEFORE);
     wm.addParameter(&custom_tz_param);
 
     p_custom_tz = &custom_tz_param; 
 
     String uniqueSSID = "TicTalk-" + String((uint32_t)ESP.getEfuseMac(), HEX).substring(0, 4);
+
+    // Inject script to update the main menu button text
+    wm.setCustomHeadElement(
+        "<script>"
+        "document.addEventListener('DOMContentLoaded', function() {"
+        "  var elements = document.querySelectorAll('a, button, input');"
+        "  elements.forEach(function(el) {"
+        "    if (el.innerText && el.innerText.includes('Configure WiFi')) {"
+        "      el.innerText = 'Configure Wifi & TZ';"
+        "    }"
+        "    if (el.value && el.value.includes('Configure WiFi')) {"
+        "      el.value = 'Configure Wifi & TZ';"
+        "    }"
+        "  });"
+        "});"
+        "</script>"
+    );
 
     wm.startConfigPortal(uniqueSSID.c_str());
 
