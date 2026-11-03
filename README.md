@@ -40,7 +40,7 @@ TicTalk is built as a compact, self-contained unit designed around the LED matri
 - **Front Face & Core:** The 64x64 HUB75 LED matrix panel serves as the structural front face of the clock. The ESP32 development board and DMA adapter board plug directly into the back header of the panel for a cable-free connection.
 - **Enclosure & Mounting:** A custom 3D-printed back panel mounts directly to the rear mounting screw points on the LED matrix. The assembly is secured using three nylon standoffs and one brass standoff.
 - **Touch Interface:** The brass standoff is electrically connected to the tactile input pin of the ESP32, serving as a reliable capacitive touch interface accessible through the enclosure and the only metal screw in the back of the clock.
-- **Power & Control:** The back panel houses a DC 5.5 x 2.1 mm female power socket wired through a Mini Inline Fuse Holder for circuit protection, alongside a 12mm latching push-button switch with a raised head for power control. All internal wiring and hardware components are cleanly enclosed within the 3D-printed back housing.
+- **Power & Control:** The back panel houses a DC 5.5 x 2.1 mm female power socket wired through a Mini Inline Fuse Holder (1A) for circuit protection, alongside a 12mm latching push-button switch with a raised head for power control. All internal wiring and hardware components are cleanly enclosed within the 3D-printed back housing.
 
 ## Software Architecture
 
@@ -77,7 +77,7 @@ TicTalk's firmware is structured around a modular architecture using the ESP32 p
 ### Prerequisites
 
 1. **Arduino IDE**: Install version 2.x.
-2. **ESP32 Board Support**: Ensure the **esp32 by Espressif Systems** core package (v3.3.12 or compatible) is installed via the Arduino Boards Manager.
+2. **ESP32 Board Support**: Ensure the **esp32 by Espressif Systems** core package (v3.3.8 or compatible) is installed via the Arduino Boards Manager.
 3. **Required Libraries**: Install the following dependencies via the Arduino Library Manager:
    * `ESP32-HUB75-MatrixPanel-I2S-DMA` (by MrCodetastic, v3.0.14 or compatible)
    * `Adafruit GFX Library` (v1.12.6 or compatible)
