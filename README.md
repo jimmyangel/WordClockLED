@@ -102,7 +102,7 @@ TicTalk's firmware is structured around a modular architecture using the ESP32 p
 ### Flashing Steps
 
 1. Clone or download this repository to your local machine.
-2. Open the project folder and launch `WordClockLED.ino` in the Arduino IDE.
+2. Open the project folder and open `WordClockLED.ino` in the Arduino IDE.
 3. Connect your ESP32 to your computer via USB.
 4. Select the correct COM port and board target in the IDE tools menu.
 5. Click **Upload** to compile and flash the firmware.
