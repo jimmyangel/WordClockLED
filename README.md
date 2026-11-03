@@ -7,7 +7,7 @@
 ## Key Features
 
 - **Informal Word-Based Time:** Spells out the time using natural, conversational phrases rather than raw numbers.
-- **Multilingual Support:** Switch seamlessly between **English**, **Spanish**, **French**, and **German**.
+- **Multilingual Support:** Switch seamlessly between **Spanish**, **English**, **French**, and **German**.
 - **Dynamic Color Coding:** Words automatically shift color palettes based on the time of day.
 - **Touch Interface:** Tap to toggle languages on the fly; perform a **long touch** to launch the setup mode.
 - **Automated Timekeeping:** Features daily auto-synchronization using official NTP time servers to stay accurate down to the second.
