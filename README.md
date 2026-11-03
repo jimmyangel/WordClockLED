@@ -17,10 +17,10 @@
 ## Sample displays
 
 <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
-  <img src="images/spanish.jpg" width="400" alt="Spanish Panel">
-  <img src="images/english.jpg" width="400" alt="English Panel">
-  <img src="images/french.jpg" width="400" alt="French Panel">
-  <img src="images/german.jpg" width="400" alt="German Panel">
+  <img src="https://morinricardo.com/images/uploads/wordclock-spanish.jpg" width="400" alt="Spanish Panel">
+  <img src="https://morinricardo.com/images/uploads/wordclock-english.jpg" width="400" alt="English Panel">
+  <img src="https://morinricardo.com/images/uploads/wordclock-french.jpg" width="400" alt="French Panel">
+  <img src="https://morinricardo.com/images/uploads/wordclock-german.jpg" width="400" alt="German Panel">
 </div>
 
 ## Hardware Components
