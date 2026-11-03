@@ -37,10 +37,22 @@ TicTalk uses a modular component stack designed to eliminate messy wiring by plu
 
 TicTalk is built as a compact, self-contained unit designed around the LED matrix panel.
 
+<div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+  <img src="https://morinricardo.com/images/uploads/wordclock-front.jpg" width="400" alt="Front">
+  <img src="https://morinricardo.com/images/uploads/wordclock-front-lit.jpg" width="400" alt="Front Lit">
+  <img src="https://morinricardo.com/images/uploads/wordclock-side.jpg" width="400" alt="Side">
+  <img src="https://morinricardo.com/images/uploads/wordclock-back.jpg" width="400" alt="Back">
+</div>
+
 - **Front Face & Core:** The 64x64 HUB75 LED matrix panel serves as the structural front face of the clock. The ESP32 development board and DMA adapter board plug directly into the back header of the panel for a cable-free connection.
 - **Enclosure & Mounting:** A custom 3D-printed back panel mounts directly to the rear mounting screw points on the LED matrix. The assembly is secured using three nylon standoffs and one brass standoff.
 - **Touch Interface:** The brass standoff is electrically connected to the tactile input pin of the ESP32, serving as a reliable capacitive touch interface accessible through the enclosure and the only metal screw in the back of the clock.
 - **Power & Control:** The back panel houses a DC 5.5 x 2.1 mm female power socket wired through a Mini Inline Fuse Holder (1A) for circuit protection, alongside a 12mm latching push-button switch with a raised head for power control. All internal wiring and hardware components are cleanly enclosed within the 3D-printed back housing.
+
+<div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+  <img src="https://morinricardo.com/images/uploads/wordclock-inside.jpg" width="800" alt="Inside">
+</div>
+
 
 ## Software Architecture
 
