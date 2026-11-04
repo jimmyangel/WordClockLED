@@ -79,21 +79,21 @@ TicTalk's firmware is structured around a modular architecture using the ESP32 p
 
 ### Execution Flow
 
-1. **Boot & Initialization**: Serial logging starts, the HUB75 matrix is initialized via I2S DMA, and saved preferences are loaded from NVS.
-2. **Time Sync & Network**: `TimeSync` attempts to connect using stored credentials and synchronize with NTP servers. If credentials are missing or the touch portal trigger is activated, it launches the captive portal Access Point (`TicTalk-XXXX`).
-3. **Task Scheduling & Rendering**: `ClockTask` runs in the background to fetch time, passing hours and minutes to `DisplayTime` to format, wrap, and render strings onto the display matrix. `TouchTask` concurrently monitors for user input.
-4. **Routine Maintenance**: A background check runs every second in the main loop to execute an automatic NTP resync daily at 3:00 AM.
+- **Boot & Initialization**: Serial logging starts, the HUB75 matrix is initialized via I2S DMA, and saved preferences are loaded from NVS.
+- **Time Sync & Network**: `TimeSync` attempts to connect using stored credentials and synchronize with NTP servers. If credentials are missing or the touch portal trigger is activated, it launches the captive portal Access Point (`TicTalk-XXXX`).
+- **Task Scheduling & Rendering**: `ClockTask` runs in the background to fetch time, passing hours and minutes to `DisplayTime` to format, wrap, and render strings onto the display matrix. `TouchTask` concurrently monitors for user input.
+- **Routine Maintenance**: A background check runs every second in the main loop to execute an automatic NTP resync daily at 3:00 AM.
 
 ## Building and Flashing
 
 ### Prerequisites
 
-1. **Arduino IDE**: Install version 2.x.
-2. **ESP32 Board Support**: Ensure the **esp32 by Espressif Systems** core package (v3.3.8 or compatible) is installed via the Arduino Boards Manager.
-3. **Required Libraries**: Install the following dependencies via the Arduino Library Manager:
-   * `ESP32-HUB75-MatrixPanel-I2S-DMA` (by MrCodetastic, v3.0.14 or compatible)
-   * `Adafruit GFX Library` (v1.12.6 or compatible)
-   * `WiFiManager` (by tzapu, v2.0.17 or compatible)
+- **Arduino IDE**: Install version 2.x.
+- **ESP32 Board Support**: Ensure the **esp32 by Espressif Systems** core package (v3.3.8 or compatible) is installed via the Arduino Boards Manager.
+- **Required Libraries**: Install the following dependencies via the Arduino Library Manager:
+   * [ESP32-HUB75-MatrixPanel-I2S-DMA](https://github.com/mrcodetastic/ESP32-HUB75-MatrixPanel-DMA) (by MrCodetastic, v3.0.14 or compatible)
+   * [Adafruit GFX Library](https://github.com/adafruit/Adafruit-GFX-Library) (v1.12.6 or compatible)
+   * [WiFiManager](https://github.com/tzapu/WiFiManager) (by tzapu, v2.0.17 or compatible)
 
 ### Board Settings
 
@@ -101,18 +101,18 @@ TicTalk's firmware is structured around a modular architecture using the ESP32 p
 
 ### Flashing Steps
 
-1. Clone or download this repository to your local machine.
-2. Open the project folder and open `WordClockLED.ino` in the Arduino IDE.
-3. Connect your ESP32 to your computer via USB.
-4. Select the correct COM port and board target in the IDE tools menu.
-5. Click **Upload** to compile and flash the firmware.
+- Clone or download this repository to your local machine.
+- Open the project folder and open `WordClockLED.ino` in the Arduino IDE.
+- Connect your ESP32 to your computer via USB.
+- Select the correct COM port and board target in the IDE tools menu.
+- Click **Upload** to compile and flash the firmware.
 
 ### First-Time Setup
 
-1. Upon first boot, if no Wi-Fi credentials are saved, the clock will launch a configuration portal access point named `TicTalk-XXXX`.
-2. Connect to this Wi-Fi network using a smartphone or computer.
-3. Select your local network, enter your credentials, and choose your local timezone from the dropdown list or input a custom numeric offset.
-4. Save the configuration. The clock will automatically reboot and synchronize time via NTP.
+- Upon first boot, if no Wi-Fi credentials are saved, the clock will launch a configuration portal access point named `TicTalk-XXXX`.
+- Connect to this Wi-Fi network using a smartphone or computer.
+- Select your local network, enter your credentials, and choose your local timezone from the dropdown list or input a custom numeric offset.
+- Save the configuration. The clock will automatically reboot and synchronize time via NTP.
 
 ---
 *This project was developed with the assistance of Google Gemini.*
