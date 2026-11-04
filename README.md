@@ -114,5 +114,11 @@ TicTalk's firmware is structured around a modular architecture using the ESP32 p
 - Select your local network, enter your credentials, and choose your local timezone from the dropdown list or input a custom numeric offset.
 - Save the configuration. The clock will automatically reboot and synchronize time via NTP.
 
+## Improvement Opportunities
+
+A few ideas I've been tossing around for potential hardware tweaks down the road:
+
+- **External Wi-Fi Antenna:** Switching to an ESP32-DevKit variant with an IPEX connector (like the UE version). Attaching a small patch antenna to the inside of the back panel would give it much better signal reach through the enclosure.
+- **Battery-Backed Real-Time Clock (RTC):** Adding an I2C RTC module (like a DS3231) with a coin battery so the clock keeps accurate time even if the power cuts out or Wi-Fi drops out, allowing it to run for up to a year without needing an NTP sync.
 ---
 *This project was developed with the assistance of Google Gemini.*
