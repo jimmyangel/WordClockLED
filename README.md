@@ -29,9 +29,9 @@ TicTalk uses a modular component stack designed to eliminate messy wiring by plu
 
 | Component | Description |
 | --- | --- |
-| HUB75 RGB LED Matrix Panel (64x64) | High-density 64x64 dot matrix panel providing the full canvas for rendering multilingual word layouts. |
-| ESP32-DevKitC-32E Board | Dual-core microcontroller managing DMA display memory, Wi-Fi networking, touch inputs, and background NTP sync tasks. |
-| ElectroDragon RGB Matrix Panel Drive Interface Board for ESP32 DMA | Dedicated shield that plugs directly into the HUB75 header for a simple, cable-free connection, driving flicker-free parallel DMA display updates. Jumper E-18 configured to enable 64x64; Miniswitch set to DEVKitC. |
+| [HUB75 RGB LED Matrix Panel (64x64)](https://www.electrodragon.com/product/rgb-full-color-led-matrix-panel/) | High-density 64x64 dot matrix panel providing the full canvas for rendering multilingual word layouts. |
+| [ESP32-DevKitC-32E Board](https://a.co/d/0efBqIYL) | Dual-core microcontroller managing DMA display memory, Wi-Fi networking, touch inputs, and background NTP sync tasks. |
+| [ElectroDragon RGB Matrix Panel Drive Interface Board for ESP32 DMA](https://www.electrodragon.com/product/rgb-matrix-panel-drive-interface-board-for-esp32-dma/) | Dedicated shield that plugs directly into the HUB75 header for a simple, cable-free connection, driving flicker-free parallel DMA display updates. Jumper E-18 configured to enable 64x64; Miniswitch set to DEVKitC. |
 
 ## Physical Assembly
 
